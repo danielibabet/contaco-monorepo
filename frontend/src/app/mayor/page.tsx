@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef } from 'ag-grid-community';
+import { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { AllCommunityModule, ModuleRegistry, themeAlpine } from 'ag-grid-community';
 import { getSession } from 'next-auth/react';
 import { useTenant } from '@/context/TenantContext';
 import SubcuentaSelector from '@/components/SubcuentaSelector';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import toast from 'react-hot-toast';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -21,6 +22,7 @@ interface MayorLinea {
   Debe: number;
   Haber: number;
   Saldo: number;
+  Punteado?: boolean;
 }
 
 interface MayorResultado {
@@ -43,8 +45,15 @@ const OBTENER_MAYOR_QUERY = `
         Debe
         Haber
         Saldo
+        Punteado
       }
     }
+  }
+`;
+
+const ALTERNAR_PUNTEO_MUTATION = `
+  mutation AlternarPunteo($TenantId: String!, $Ejercicio: String!, $IdAsiento: String!, $Linea: String!, $Estado: Boolean!) {
+    alternarPunteo(TenantId: $TenantId, Ejercicio: $Ejercicio, IdAsiento: $IdAsiento, Linea: $Linea, Estado: $Estado)
   }
 `;
 
@@ -53,10 +62,79 @@ export default function LibroMayorPage() {
   const [mayorData, setMayorData] = useState<MayorResultado | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ocultarPunteados, setOcultarPunteados] = useState(false);
 
   const gridRef = useRef<AgGridReact>(null);
 
+  const togglePunteo = async (data: MayorLinea, nuevoEstado: boolean) => {
+    // Optimistic UI update en el rowData local
+    if (!mayorData) return;
+    const newData = { ...mayorData };
+    const apunteIndex = newData.Apuntes.findIndex(a => a.IdAsiento === data.IdAsiento && a.Linea === data.Linea);
+    if (apunteIndex > -1) {
+      newData.Apuntes[apunteIndex].Punteado = nuevoEstado;
+      setMayorData(newData);
+      gridRef.current?.api.onFilterChanged();
+    }
+
+    try {
+      const session: any = await getSession();
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL || '', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session?.accessToken || ''
+        },
+        body: JSON.stringify({
+          query: ALTERNAR_PUNTEO_MUTATION,
+          variables: {
+            TenantId: tenantId,
+            Ejercicio: ejercicio,
+            IdAsiento: data.IdAsiento,
+            Linea: data.Linea,
+            Estado: nuevoEstado
+          }
+        })
+      });
+
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors[0].message);
+    } catch (err: any) {
+      toast.error("Error al guardar el punteo");
+      // Revertir
+      const revertData = { ...mayorData };
+      const apunteIdxRevert = revertData.Apuntes.findIndex(a => a.IdAsiento === data.IdAsiento && a.Linea === data.Linea);
+      if (apunteIdxRevert > -1) {
+        revertData.Apuntes[apunteIdxRevert].Punteado = !nuevoEstado;
+        setMayorData(revertData);
+        gridRef.current?.api.onFilterChanged();
+      }
+    }
+  };
+
+  const CheckboxRenderer = (params: ICellRendererParams) => {
+    if (!params.data) return null;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <input 
+          type="checkbox" 
+          checked={params.data.Punteado || false}
+          onChange={(e) => togglePunteo(params.data, e.target.checked)}
+          className="w-5 h-5 cursor-pointer accent-blue-600 rounded"
+        />
+      </div>
+    );
+  };
+
   const [colDefs] = useState<ColDef[]>([
+    { 
+      field: 'Punteado', 
+      headerName: '✔', 
+      width: 60, 
+      cellRenderer: CheckboxRenderer,
+      sortable: false,
+      filter: false
+    },
     { field: 'Fecha', headerName: 'Fecha', width: 120, sortable: true },
     { field: 'IdAsiento', headerName: 'Asiento', width: 100 },
     { field: 'Documento', headerName: 'Documento', width: 130 },
@@ -81,6 +159,23 @@ export default function LibroMayorPage() {
       valueFormatter: (params) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(params.value)
     },
   ]);
+
+  const isExternalFilterPresent = () => {
+    return ocultarPunteados;
+  };
+
+  const doesExternalFilterPass = (node: any) => {
+    if (ocultarPunteados) {
+      return !node.data.Punteado;
+    }
+    return true;
+  };
+
+  useEffect(() => {
+    if (gridRef.current?.api) {
+      gridRef.current.api.onFilterChanged();
+    }
+  }, [ocultarPunteados]);
 
   const loadMayor = async (subcuentaId: string) => {
     setLoading(true);
@@ -132,30 +227,28 @@ export default function LibroMayorPage() {
     const doc = new jsPDF();
     const currentDate = new Date().toLocaleDateString('es-ES');
 
-    // Título
     doc.setFontSize(18);
     doc.text('LIBRO MAYOR', 14, 22);
 
-    // Detalles
     doc.setFontSize(11);
     doc.text(`Empresa / Tenant: ${tenantId}`, 14, 32);
     doc.text(`Ejercicio: ${ejercicio}`, 14, 38);
     doc.text(`Subcuenta: ${mayorData.SubcuentaId}`, 14, 44);
     doc.text(`Fecha de impresión: ${currentDate}`, 14, 50);
 
-    // Tabla
     const tableData = mayorData.Apuntes.map(apunte => [
       apunte.Fecha,
       apunte.IdAsiento,
       apunte.Concepto,
       apunte.Debe ? Number(apunte.Debe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) : '',
       apunte.Haber ? Number(apunte.Haber).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) : '',
-      Number(apunte.Saldo).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })
+      Number(apunte.Saldo).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }),
+      apunte.Punteado ? 'S' : 'N'
     ]);
 
     autoTable(doc, {
       startY: 55,
-      head: [['Fecha', 'Asiento', 'Concepto', 'Debe', 'Haber', 'Saldo']],
+      head: [['Fecha', 'Asiento', 'Concepto', 'Debe', 'Haber', 'Saldo', 'Punteado']],
       body: tableData,
       theme: 'grid',
       headStyles: { fillColor: [41, 128, 185] },
@@ -163,11 +256,11 @@ export default function LibroMayorPage() {
       columnStyles: {
         3: { halign: 'right' },
         4: { halign: 'right' },
-        5: { halign: 'right' }
+        5: { halign: 'right' },
+        6: { halign: 'center' }
       }
     });
 
-    // Saldo Final
     const finalY = (doc as any).lastAutoTable.finalY || 55;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -184,8 +277,8 @@ export default function LibroMayorPage() {
     <div className="flex flex-col h-full gap-4">
       <header className="flex justify-between items-end border-b pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Libro Mayor</h1>
-          <p className="text-gray-500 mt-1">Extracto de movimientos y saldo acumulado</p>
+          <h1 className="text-3xl font-bold text-gray-800">Libro Mayor y Conciliación</h1>
+          <p className="text-gray-500 mt-1">Extracto de movimientos, punteo y saldo acumulado</p>
         </div>
         {mayorData && (
           <button
@@ -201,7 +294,7 @@ export default function LibroMayorPage() {
       {/* Panel de Filtro */}
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-4 z-10">
         <div className="flex-1 w-full flex flex-col">
-          <label className="text-sm font-semibold text-gray-700 mb-2">Selecciona la Subcuenta:</label>
+          <label className="text-sm font-semibold text-gray-700 mb-2">Selecciona la Subcuenta (ej. Banco 572):</label>
           <SubcuentaSelector 
             onSelect={handleSubcuentaSelect} 
             autoFocus 
@@ -209,6 +302,22 @@ export default function LibroMayorPage() {
             menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
           />
         </div>
+
+        {mayorData && (
+            <div className="flex items-center gap-2 bg-blue-50 text-blue-800 px-4 py-3 rounded-lg border border-blue-200">
+                <input 
+                    type="checkbox" 
+                    id="ocultarPunteados" 
+                    className="w-5 h-5 cursor-pointer accent-blue-600"
+                    checked={ocultarPunteados}
+                    onChange={(e) => setOcultarPunteados(e.target.checked)}
+                />
+                <label htmlFor="ocultarPunteados" className="font-medium cursor-pointer">
+                    Ocultar movimientos punteados
+                </label>
+            </div>
+        )}
+
         {mayorData && (
           <div className="flex flex-col items-end bg-gray-50 p-4 rounded-lg border min-w-[200px]">
              <span className="text-sm text-gray-500 font-medium">Saldo Final</span>
@@ -236,6 +345,8 @@ export default function LibroMayorPage() {
             columnDefs={colDefs}
             theme={themeAlpine}
             animateRows={true}
+            isExternalFilterPresent={isExternalFilterPresent}
+            doesExternalFilterPass={doesExternalFilterPass}
             defaultColDef={{
               resizable: true,
               sortable: true

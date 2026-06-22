@@ -1,12 +1,14 @@
 type Query {
-  getSubcuenta(id: ID!): Subcuenta
   getAsiento(id: ID!): Asiento
+  obtenerAsiento(TenantId: String!, Ejercicio: String!, IdAsiento: String!): Asiento
   listarSubcuentas(TenantId: String!): [Subcuenta!]!
   obtenerMayor(TenantId: String!, Ejercicio: String!, SubcuentaId: String!): MayorResultado!
   obtenerBalanceSumasSaldos(TenantId: String!, Ejercicio: String!): [BalanceLinea!]!
   listarEmpresas: [Empresa!]!
   obtenerDiario(TenantId: String!, Ejercicio: String!): [Apunte!]!
   calcularModelo303(TenantId: String!, Ejercicio: String!, Trimestre: Int!): Modelo303Result!
+  listarPlantillas(TenantId: String!): [Plantilla!]!
+  obtenerUrlDescarga(S3Key: String!): String!
 }
 
 type Mutation {
@@ -14,6 +16,11 @@ type Mutation {
   cerrarEjercicio(TenantId: String!, EjercicioActual: String!, EjercicioNuevo: String!): Boolean!
   editarAsiento(input: EditarAsientoInput!): Asiento!
   borrarAsiento(TenantId: String!, Ejercicio: String!, IdAsiento: String!): Boolean!
+  crearPlantilla(input: CrearPlantillaInput!): Plantilla!
+  borrarPlantilla(TenantId: String!, TemplateId: String!): Boolean!
+  alternarPunteo(TenantId: String!, Ejercicio: String!, IdAsiento: String!, Linea: String!, Estado: Boolean!): Boolean!
+  generarUrlSubida(TenantId: String!, Ejercicio: String!, IdAsiento: String!, NombreArchivo: String!): PresignedUrlResponse!
+  procesarFicheroBanco(contenidoBase64: String!): [MovimientoBancario!]!
 }
 
 type Empresa {
@@ -46,6 +53,24 @@ type Asiento {
   Usuario: String!
   Estado: String!
   Apuntes: [Apunte!]
+  Documentos: [DocumentoAdjunto!]
+}
+
+type DocumentoAdjunto {
+  S3Key: String!
+  Nombre: String!
+}
+
+type PresignedUrlResponse {
+  Url: String!
+  S3Key: String!
+}
+
+type MovimientoBancario {
+  Fecha: String!
+  Importe: Float!
+  Concepto: String!
+  Referencia: String
 }
 
 type Apunte {
@@ -59,6 +84,7 @@ type Apunte {
   Documento: String
   Debe: Float!
   Haber: Float!
+  Punteado: Boolean
 }
 
 input ApunteInput {
@@ -97,6 +123,7 @@ type MayorLinea {
    Debe: Float!
    Haber: Float!
    Saldo: Float!
+   Punteado: Boolean
 }
 
 type MayorResultado {
@@ -113,4 +140,32 @@ type BalanceLinea {
   SaldoDeudor: Float!
   SaldoAcreedor: Float!
   Nivel: String!
+}
+
+type PlantillaLinea {
+  SubcuentaId: String!
+  Concepto: String!
+  Porcentaje: Float!
+  Columna: String! # "DEBE" o "HABER"
+}
+
+type Plantilla {
+  PK: String!
+  SK: String!
+  TemplateId: String!
+  NombrePlantilla: String!
+  Lineas: [PlantillaLinea!]!
+}
+
+input PlantillaLineaInput {
+  SubcuentaId: String!
+  Concepto: String!
+  Porcentaje: Float!
+  Columna: String!
+}
+
+input CrearPlantillaInput {
+  TenantId: String!
+  NombrePlantilla: String!
+  Lineas: [PlantillaLineaInput!]!
 }

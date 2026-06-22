@@ -4,6 +4,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as path from 'path';
 
 export class InfrastructureStack extends cdk.Stack {
@@ -57,6 +58,21 @@ export class InfrastructureStack extends cdk.Stack {
       partitionKey: { name: 'GSI1PK', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'GSI1SK', type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    // Bucket S3 para Archivo Documental (Fase 19)
+    const docsBucket = new s3.Bucket(this, 'ContaCoDocsBucket', {
+      bucketName: `contaco-docs-${this.account}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT],
+          allowedOrigins: ['*'], // Idealmente en producción limitaríamos al origin de nuestro frontend
+          allowedHeaders: ['*'],
+        },
+      ],
     });
 
     // 3. Backend: Lambdas
@@ -151,6 +167,58 @@ export class InfrastructureStack extends cdk.Stack {
       },
     });
 
+    const gestionarPlantillasLambda = new lambda.Function(this, 'GestionarPlantillasLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'gestionarPlantillas.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    });
+
+    const alternarPunteoLambda = new lambda.Function(this, 'AlternarPunteoLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'alternarPunteo.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    });
+
+    const generarUrlSubidaLambda = new lambda.Function(this, 'GenerarUrlSubidaLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'generarUrlSubida.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        TABLE_NAME: table.tableName,
+        BUCKET_NAME: docsBucket.bucketName,
+      },
+    });
+
+    const obtenerUrlDescargaLambda = new lambda.Function(this, 'ObtenerUrlDescargaLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'obtenerUrlDescarga.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        BUCKET_NAME: docsBucket.bucketName,
+      },
+    });
+
+    const obtenerAsientoLambda = new lambda.Function(this, 'ObtenerAsientoLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'obtenerAsiento.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    });
+
+    const procesarFicheroBancoLambda = new lambda.Function(this, 'ProcesarFicheroBancoLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'procesarFicheroBanco.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+    });
+
     // Permisos
     table.grantWriteData(crearAsientoLambda);
     table.grantReadData(listarSubcuentasLambda);
@@ -159,9 +227,16 @@ export class InfrastructureStack extends cdk.Stack {
     table.grantReadWriteData(cerrarEjercicioLambda);
     table.grantReadData(listarEmpresasLambda);
     table.grantReadData(obtenerDiarioLambda);
+    table.grantReadData(obtenerAsientoLambda);
     table.grantReadWriteData(borrarAsientoLambda);
     table.grantReadWriteData(editarAsientoLambda);
     table.grantReadData(calcularModelo303Lambda);
+    table.grantReadWriteData(gestionarPlantillasLambda);
+    table.grantReadWriteData(alternarPunteoLambda);
+    table.grantReadWriteData(generarUrlSubidaLambda);
+
+    docsBucket.grantPut(generarUrlSubidaLambda);
+    docsBucket.grantRead(obtenerUrlDescargaLambda);
 
     // 4. API GraphQL: AWS AppSync
     const api = new appsync.GraphqlApi(this, 'ContaCoApi', {
@@ -188,6 +263,12 @@ export class InfrastructureStack extends cdk.Stack {
     const borrarDataSource = api.addLambdaDataSource('BorrarAsientoDS', borrarAsientoLambda);
     const editarDataSource = api.addLambdaDataSource('EditarAsientoDS', editarAsientoLambda);
     const modelo303DataSource = api.addLambdaDataSource('Modelo303DS', calcularModelo303Lambda);
+    const plantillasDataSource = api.addLambdaDataSource('PlantillasDS', gestionarPlantillasLambda);
+    const punteoDataSource = api.addLambdaDataSource('PunteoDS', alternarPunteoLambda);
+    const docUploadDataSource = api.addLambdaDataSource('DocUploadDS', generarUrlSubidaLambda);
+    const docDownloadDataSource = api.addLambdaDataSource('DocDownloadDS', obtenerUrlDescargaLambda);
+    const obtenerAsientoDataSource = api.addLambdaDataSource('ObtenerAsientoDS', obtenerAsientoLambda);
+    const n43DataSource = api.addLambdaDataSource('N43DS', procesarFicheroBancoLambda);
     
     // Configurar el Resolver para la mutación crearAsiento
     lambdaDataSource.createResolver('CrearAsientoResolver', {
@@ -243,6 +324,46 @@ export class InfrastructureStack extends cdk.Stack {
     modelo303DataSource.createResolver('CalcularModelo303Resolver', {
       typeName: 'Query',
       fieldName: 'calcularModelo303',
+    });
+
+    plantillasDataSource.createResolver('ListarPlantillasResolver', {
+      typeName: 'Query',
+      fieldName: 'listarPlantillas',
+    });
+
+    plantillasDataSource.createResolver('CrearPlantillaResolver', {
+      typeName: 'Mutation',
+      fieldName: 'crearPlantilla',
+    });
+
+    plantillasDataSource.createResolver('BorrarPlantillaResolver', {
+      typeName: 'Mutation',
+      fieldName: 'borrarPlantilla',
+    });
+
+    punteoDataSource.createResolver('AlternarPunteoResolver', {
+      typeName: 'Mutation',
+      fieldName: 'alternarPunteo',
+    });
+
+    docUploadDataSource.createResolver('GenerarUrlSubidaResolver', {
+      typeName: 'Mutation',
+      fieldName: 'generarUrlSubida',
+    });
+
+    docDownloadDataSource.createResolver('ObtenerUrlDescargaResolver', {
+      typeName: 'Query',
+      fieldName: 'obtenerUrlDescarga',
+    });
+
+    obtenerAsientoDataSource.createResolver('ObtenerAsientoResolver', {
+      typeName: 'Query',
+      fieldName: 'obtenerAsiento',
+    });
+
+    n43DataSource.createResolver('ProcesarFicheroBancoResolver', {
+      typeName: 'Mutation',
+      fieldName: 'procesarFicheroBanco',
     });
 
     // Outputs

@@ -43,7 +43,8 @@ export const handler = async (event: any) => {
                 Documento: item.Documento || '',
                 Debe: debe,
                 Haber: haber,
-                Saldo: Math.round(saldoActual * 100) / 100
+                Saldo: Math.round(saldoActual * 100) / 100,
+                Punteado: item.Punteado || false
             };
         });
 

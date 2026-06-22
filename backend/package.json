@@ -13,7 +13,9 @@
   "type": "commonjs",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1073.0",
+    "@aws-sdk/client-s3": "^3.1074.0",
     "@aws-sdk/lib-dynamodb": "^3.1073.0",
+    "@aws-sdk/s3-request-presigner": "^3.1074.0",
     "uuid": "^14.0.1"
   },
   "devDependencies": {

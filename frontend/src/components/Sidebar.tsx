@@ -11,6 +11,7 @@ export default function Sidebar() {
     { name: 'Diario Histórico', href: '/diario' },
     { name: 'Subcuentas', href: '/subcuentas' },
     { name: 'Libro Mayor', href: '/mayor' },
+    { name: 'Conciliación Bancaria', href: '/conciliacion', icon: '🏦' },
     { name: 'Balance Sumas y Saldos', href: '/balances', icon: '⚖️' },
     { name: 'Balance de Situación', href: '/situacion', icon: '🏛️' },
     { name: 'Pérdidas y Ganancias', href: '/pyg', icon: '📈' },
