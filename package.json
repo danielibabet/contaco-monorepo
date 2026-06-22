@@ -1,0 +1,13 @@
+{
+  "name": "contaco-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "infrastructure"
+  ],
+  "scripts": {
+    "deploy": "npm run build --workspaces && npm run cdk deploy --workspace=infrastructure"
+  }
+}

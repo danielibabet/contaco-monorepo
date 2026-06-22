@@ -1,0 +1,116 @@
+type Query {
+  getSubcuenta(id: ID!): Subcuenta
+  getAsiento(id: ID!): Asiento
+  listarSubcuentas(TenantId: String!): [Subcuenta!]!
+  obtenerMayor(TenantId: String!, Ejercicio: String!, SubcuentaId: String!): MayorResultado!
+  obtenerBalanceSumasSaldos(TenantId: String!, Ejercicio: String!): [BalanceLinea!]!
+  listarEmpresas: [Empresa!]!
+  obtenerDiario(TenantId: String!, Ejercicio: String!): [Apunte!]!
+  calcularModelo303(TenantId: String!, Ejercicio: String!, Trimestre: Int!): Modelo303Result!
+}
+
+type Mutation {
+  crearAsiento(input: CrearAsientoInput!): Asiento!
+  cerrarEjercicio(TenantId: String!, EjercicioActual: String!, EjercicioNuevo: String!): Boolean!
+  editarAsiento(input: EditarAsientoInput!): Asiento!
+  borrarAsiento(TenantId: String!, Ejercicio: String!, IdAsiento: String!): Boolean!
+}
+
+type Empresa {
+  TenantId: String!
+  Nombre: String!
+}
+
+type Subcuenta {
+  PK: String!
+  SK: String!
+  CodSubcuenta: String!
+  Descripcion: String!
+  Nombre: String!
+  Nif: String
+}
+
+type Modelo303Result {
+  Trimestre: Int!
+  IvaDevengado: Float!
+  IvaDeducible: Float!
+  Resultado: Float!
+}
+
+type Asiento {
+  PK: String!
+  SK: String!
+  IdAsiento: String!
+  Fecha: String!
+  Observaciones: String
+  Usuario: String!
+  Estado: String!
+  Apuntes: [Apunte!]
+}
+
+type Apunte {
+  PK: String!
+  SK: String!
+  IdAsiento: String!
+  Linea: String!
+  Fecha: String!
+  SubcuentaId: String!
+  Concepto: String!
+  Documento: String
+  Debe: Float!
+  Haber: Float!
+}
+
+input ApunteInput {
+  SubcuentaId: String!
+  Concepto: String!
+  Documento: String
+  Debe: Float!
+  Haber: Float!
+}
+
+input CrearAsientoInput {
+  TenantId: String!
+  Ejercicio: String!
+  Fecha: String!
+  Observaciones: String
+  Usuario: String!
+  Apuntes: [ApunteInput!]!
+}
+
+input EditarAsientoInput {
+  TenantId: String!
+  Ejercicio: String!
+  IdAsiento: String!
+  Fecha: String!
+  Observaciones: String
+  Usuario: String!
+  Apuntes: [ApunteInput!]!
+}
+
+type MayorLinea {
+   IdAsiento: String!
+   Linea: String!
+   Fecha: String!
+   Concepto: String!
+   Documento: String
+   Debe: Float!
+   Haber: Float!
+   Saldo: Float!
+}
+
+type MayorResultado {
+   SubcuentaId: String!
+   SaldoFinal: Float!
+   Apuntes: [MayorLinea!]!
+}
+
+type BalanceLinea {
+  SubcuentaId: String!
+  Descripcion: String!
+  SumaDebe: Float!
+  SumaHaber: Float!
+  SaldoDeudor: Float!
+  SaldoAcreedor: Float!
+  Nivel: String!
+}

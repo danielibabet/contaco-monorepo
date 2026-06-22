@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1073.0",
+    "@aws-sdk/lib-dynamodb": "^3.1073.0",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.162",
+    "@types/node": "^26.0.0",
+    "@types/uuid": "^10.0.0",
+    "esbuild": "^0.28.1",
+    "typescript": "^6.0.3"
+  }
+}

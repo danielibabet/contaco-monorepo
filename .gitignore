@@ -1,0 +1,10 @@
+node_modules/
+.next/
+dist/
+build/
+.aws-sam/
+cdk.out/
+.env
+.env.local
+coverage/
+.DS_Store

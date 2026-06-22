@@ -1,0 +1,39 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1073.0",
+    "@aws-sdk/lib-dynamodb": "^3.1073.0",
+    "ag-grid-community": "^35.3.1",
+    "ag-grid-react": "^35.3.1",
+    "dbffile": "^1.12.0",
+    "graphql": "^16.14.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "next": "16.2.9",
+    "next-auth": "^4.24.14",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-dropzone": "^15.0.0",
+    "react-hot-toast": "^2.6.0",
+    "react-select": "^5.10.2",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
