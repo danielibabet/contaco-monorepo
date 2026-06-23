@@ -34,3 +34,23 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Roadmap & Futuros Módulos (Equiparación con Contaplus)
+
+A medida que Contaco crezca, el objetivo es igualar o superar las siguientes funcionalidades core del clásico software Contaplus:
+
+- [ ] **Fiscalidad e Impuestos:**
+  - Generación automática de modelos de la AEAT (303, 347, 390, 115, 130).
+  - Exportación telemática oficial.
+- [ ] **Gestión de Inmovilizado y Amortizaciones:**
+  - Ficha de inmovilizado.
+  - Cálculo de cuotas y generación automática del asiento de amortización y dotación.
+- [ ] **Cierres de Ejercicio Automáticos:**
+  - Asientos de regularización automática de PyG.
+  - Asiento de cierre del ejercicio actual y asiento de apertura del siguiente.
+- [ ] **Contabilidad Analítica/Departamental:**
+  - Asignación de porcentajes de gasto/ingreso a diferentes centros de coste o departamentos.
+- [ ] **Asientos Predefinidos y Automatismos:**
+  - Plantillas de asientos recurrentes con variables automáticas (ej. nóminas, recibos, seguros).
+- [ ] **Gestión Documental:**
+  - Adjuntar facturas en PDF/Imagen directamente a cada apunte contable y archivado automático en S3.
