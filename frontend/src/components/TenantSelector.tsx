@@ -50,14 +50,14 @@ export default function TenantSelector() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-gray-50 border-t border-b border-gray-200">
+    <div className="flex flex-col gap-3 p-1 bg-transparent">
       <div className="flex flex-col">
-        <label className="text-xs font-semibold text-gray-500 uppercase mb-1">Empresa Activa</label>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Empresa Activa</label>
         <select 
           value={tenantId}
           onChange={(e) => setTenantId(e.target.value)}
           disabled={loading}
-          className="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+          className="w-full bg-white border border-slate-300 text-slate-900 font-semibold text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 shadow-sm transition-all"
         >
           {loading ? (
             <option>Cargando empresas...</option>
@@ -72,11 +72,11 @@ export default function TenantSelector() {
       </div>
 
       <div className="flex flex-col">
-        <label className="text-xs font-semibold text-gray-500 uppercase mb-1">Ejercicio</label>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Ejercicio</label>
         <select 
           value={ejercicio}
           onChange={(e) => setEjercicio(e.target.value)}
-          className="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+          className="w-full bg-white border border-slate-300 text-slate-900 font-semibold text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 shadow-sm transition-all"
         >
           <option value="2024">2024</option>
           <option value="2025">2025</option>

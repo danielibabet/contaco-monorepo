@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc; /* Very light slate (slate-50) for background separation */
+  --foreground: #0f172a; /* Slate 900 for pure, high-contrast text */
 }
 
 @theme inline {
@@ -12,15 +12,45 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* No dark mode media query to enforce Light High Contrast theme */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* AG Grid High Contrast & Zebra Overrides */
+.ag-theme-alpine, .ag-theme-legacy {
+  --ag-background-color: #ffffff; /* White for even rows */
+  --ag-foreground-color: #0f172a; /* Text slate 900 */
+  --ag-header-background-color: #f1f5f9; /* Slate 100 for header */
+  --ag-header-foreground-color: #1e293b; /* Slate 800 for header text */
+  --ag-odd-row-background-color: #f8fafc; /* Slate 50 for zebra striping */
+  --ag-border-color: #cbd5e1; /* Slate 300 for clearer borders */
+  --ag-row-border-color: #e2e8f0; /* Subtle borders between rows */
+  --ag-font-family: inherit;
+  --ag-font-size: 14px;
+}
+
+/* Enforce font weights and contrast in the grid */
+.ag-header-cell-text {
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+/* Tabular numbers for all numeric cells so decimals align perfectly */
+.ag-theme-alpine .ag-numeric-cell, .ag-theme-legacy .ag-numeric-cell, .ag-cell[col-id="Debe"], .ag-cell[col-id="Haber"], .tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 500;
+}
+
+/* Make editing text very dark */
+.ag-theme-alpine .ag-input-field-input, .ag-theme-legacy .ag-input-field-input {
+  color: #0f172a !important;
+  font-weight: 600;
 }

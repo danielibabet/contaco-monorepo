@@ -15,39 +15,43 @@ export default function Sidebar() {
     { name: 'Balance Sumas y Saldos', href: '/balances', icon: '⚖️' },
     { name: 'Balance de Situación', href: '/situacion', icon: '🏛️' },
     { name: 'Pérdidas y Ganancias', href: '/pyg', icon: '📈' },
-    { name: 'Impuestos (Modelo 303)', href: '/impuestos', icon: '🏛️' },
+    { name: 'Modelos Fiscales (303, 390, 347)', href: '/modelos', icon: '🏛️' },
     { name: 'Cierre Anual', href: '/cierre', icon: '🔒' },
     { name: 'Migración DBF', href: '/migracion' },
   ];
 
   return (
-    <div className="w-64 bg-gray-900 text-white min-h-screen flex flex-col fixed shadow-lg">
-      <div className="p-6 border-b border-gray-800">
-        <h1 className="text-2xl font-bold tracking-wider text-blue-400">ContaCo</h1>
-        <p className="text-xs text-gray-400 mt-1">Cloud Edition</p>
+    <div className="w-64 bg-white border-r border-slate-200 min-h-screen flex flex-col fixed shadow-sm z-50">
+      <div className="p-6 border-b border-slate-200 bg-slate-50/50">
+        <h1 className="text-2xl font-bold tracking-wider text-indigo-700">ContaCo</h1>
+        <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-widest">Cloud Edition</p>
       </div>
       
-      <TenantSelector />
+      <div className="px-4 py-3 border-b border-slate-100">
+        <TenantSelector />
+      </div>
 
-      <nav className="flex-1 p-4 flex flex-col gap-2">
+      <nav className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
         {links.map((link) => (
           <Link 
             key={link.name} 
             href={link.href}
-            className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+            className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all flex items-center gap-3"
           >
+            {link.icon && <span className="text-lg opacity-80">{link.icon}</span>}
+            {!link.icon && <span className="w-4"></span> /* Spacer if no icon */}
             {link.name}
           </Link>
         ))}
       </nav>
-      <div className="p-4 border-t border-gray-800 flex flex-col gap-3">
+      <div className="p-4 border-t border-slate-200 bg-slate-50/50 flex flex-col gap-3">
         <button 
           onClick={() => signOut()}
-          className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold text-sm"
+          className="w-full px-4 py-2.5 bg-white border border-slate-300 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-slate-700 rounded-lg transition-colors font-bold text-sm shadow-sm"
         >
           Cerrar Sesión
         </button>
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-xs font-medium text-slate-400 text-center uppercase tracking-wider">
           Demo Mode - v1.0
         </div>
       </div>

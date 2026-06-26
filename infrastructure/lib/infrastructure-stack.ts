@@ -6,13 +6,46 @@ import * as appsync from 'aws-cdk-lib/aws-appsync';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as path from 'path';
+import * as budgets from 'aws-cdk-lib/aws-budgets';
 
 export class InfrastructureStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // Añadir Tag global al stack
-    cdk.Tags.of(this).add('Project', 'contaco');
+    // Añadir Tags globales al stack para organizar la cuenta de AWS
+    cdk.Tags.of(this).add('Project', 'ContaCo');
+    cdk.Tags.of(this).add('Environment', 'Demo');
+    cdk.Tags.of(this).add('ManagedBy', 'CDK');
+
+    // Control de Costes (AWS Budgets)
+    new budgets.CfnBudget(this, 'ContaCoBudget', {
+      budget: {
+        budgetType: 'COST',
+        timeUnit: 'MONTHLY',
+        budgetLimit: { amount: 5, unit: 'USD' },
+        budgetName: 'ContaCo-Spend-Alerts',
+        // Opcional: Filtrar solo por el Tag Project=ContaCo (si Cost Allocation Tags está activado)
+        // costFilters: { TagKeyValue: ['user:Project$ContaCo'] }
+      },
+      notificationsWithSubscribers: [
+        {
+          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 100 },
+          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
+        },
+        {
+          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 200 },
+          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
+        },
+        {
+          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 300 },
+          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
+        },
+        {
+          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 400 },
+          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
+        }
+      ],
+    });
 
     // 1. Autenticación: Amazon Cognito
     const userPool = new cognito.UserPool(this, 'ContaCoUserPool', {
@@ -122,6 +155,18 @@ export class InfrastructureStack extends cdk.Stack {
       },
     });
 
+    const migrarContaPlusLambda = new lambda.Function(this, 'MigrarContaPlusLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'migrarContaPlus.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        TABLE_NAME: table.tableName,
+        BUCKET_NAME: docsBucket.bucketName
+      },
+      timeout: cdk.Duration.seconds(120),
+      memorySize: 1024
+    });
+
     const listarEmpresasLambda = new lambda.Function(this, 'ListarEmpresasLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'listarEmpresas.handler',
@@ -161,6 +206,25 @@ export class InfrastructureStack extends cdk.Stack {
     const calcularModelo303Lambda = new lambda.Function(this, 'CalcularModelo303Lambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'calcularModelo303.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    });
+
+    const calcularModelo390Lambda = new lambda.Function(this, 'CalcularModelo390Lambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'calcularModelo390.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    });
+
+    const calcularModelo347Lambda = new lambda.Function(this, 'CalcularModelo347Lambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'calcularModelo347.handler',
+      timeout: cdk.Duration.seconds(30), // Puede ser pesado al iterar todas las subcuentas
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: {
         TABLE_NAME: table.tableName,
@@ -225,12 +289,16 @@ export class InfrastructureStack extends cdk.Stack {
     table.grantReadData(obtenerMayorLambda);
     table.grantReadData(obtenerBalanceLambda);
     table.grantReadWriteData(cerrarEjercicioLambda);
+    table.grantReadWriteData(migrarContaPlusLambda);
+    docsBucket.grantRead(migrarContaPlusLambda);
     table.grantReadData(listarEmpresasLambda);
     table.grantReadData(obtenerDiarioLambda);
     table.grantReadData(obtenerAsientoLambda);
     table.grantReadWriteData(borrarAsientoLambda);
     table.grantReadWriteData(editarAsientoLambda);
     table.grantReadData(calcularModelo303Lambda);
+    table.grantReadData(calcularModelo390Lambda);
+    table.grantReadData(calcularModelo347Lambda);
     table.grantReadWriteData(gestionarPlantillasLambda);
     table.grantReadWriteData(alternarPunteoLambda);
     table.grantReadWriteData(generarUrlSubidaLambda);
@@ -263,13 +331,16 @@ export class InfrastructureStack extends cdk.Stack {
     const borrarDataSource = api.addLambdaDataSource('BorrarAsientoDS', borrarAsientoLambda);
     const editarDataSource = api.addLambdaDataSource('EditarAsientoDS', editarAsientoLambda);
     const modelo303DataSource = api.addLambdaDataSource('Modelo303DS', calcularModelo303Lambda);
+    const modelo390DataSource = api.addLambdaDataSource('Modelo390DS', calcularModelo390Lambda);
+    const modelo347DataSource = api.addLambdaDataSource('Modelo347DS', calcularModelo347Lambda);
     const plantillasDataSource = api.addLambdaDataSource('PlantillasDS', gestionarPlantillasLambda);
     const punteoDataSource = api.addLambdaDataSource('PunteoDS', alternarPunteoLambda);
     const docUploadDataSource = api.addLambdaDataSource('DocUploadDS', generarUrlSubidaLambda);
     const docDownloadDataSource = api.addLambdaDataSource('DocDownloadDS', obtenerUrlDescargaLambda);
     const obtenerAsientoDataSource = api.addLambdaDataSource('ObtenerAsientoDS', obtenerAsientoLambda);
     const n43DataSource = api.addLambdaDataSource('N43DS', procesarFicheroBancoLambda);
-    
+    const migrarContaPlusDataSource = api.addLambdaDataSource('MigrarContaPlusDS', migrarContaPlusLambda);
+
     // Configurar el Resolver para la mutación crearAsiento
     lambdaDataSource.createResolver('CrearAsientoResolver', {
       typeName: 'Mutation',
@@ -326,6 +397,16 @@ export class InfrastructureStack extends cdk.Stack {
       fieldName: 'calcularModelo303',
     });
 
+    modelo390DataSource.createResolver('CalcularModelo390Resolver', {
+      typeName: 'Query',
+      fieldName: 'calcularModelo390',
+    });
+
+    modelo347DataSource.createResolver('CalcularModelo347Resolver', {
+      typeName: 'Query',
+      fieldName: 'calcularModelo347',
+    });
+
     plantillasDataSource.createResolver('ListarPlantillasResolver', {
       typeName: 'Query',
       fieldName: 'listarPlantillas',
@@ -364,6 +445,11 @@ export class InfrastructureStack extends cdk.Stack {
     n43DataSource.createResolver('ProcesarFicheroBancoResolver', {
       typeName: 'Mutation',
       fieldName: 'procesarFicheroBanco',
+    });
+
+    migrarContaPlusDataSource.createResolver('MigrarContaPlusResolver', {
+      typeName: 'Mutation',
+      fieldName: 'migrarContaPlus',
     });
 
     // Outputs

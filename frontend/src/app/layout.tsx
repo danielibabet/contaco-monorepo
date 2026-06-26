@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.className} bg-gray-50 text-gray-900 antialiased min-h-screen flex`} suppressHydrationWarning>
+      <body className={`${inter.className} bg-slate-50 text-slate-900 antialiased min-h-screen flex`} suppressHydrationWarning>
         <Providers>
           <TenantProvider>
             <Sidebar />

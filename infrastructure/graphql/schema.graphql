@@ -7,6 +7,8 @@ type Query {
   listarEmpresas: [Empresa!]!
   obtenerDiario(TenantId: String!, Ejercicio: String!): [Apunte!]!
   calcularModelo303(TenantId: String!, Ejercicio: String!, Trimestre: Int!): Modelo303Result!
+  calcularModelo390(TenantId: String!, Ejercicio: String!): Modelo390Result!
+  calcularModelo347(TenantId: String!, Ejercicio: String!): [Modelo347Result!]!
   listarPlantillas(TenantId: String!): [Plantilla!]!
   obtenerUrlDescarga(S3Key: String!): String!
 }
@@ -21,6 +23,7 @@ type Mutation {
   alternarPunteo(TenantId: String!, Ejercicio: String!, IdAsiento: String!, Linea: String!, Estado: Boolean!): Boolean!
   generarUrlSubida(TenantId: String!, Ejercicio: String!, IdAsiento: String!, NombreArchivo: String!): PresignedUrlResponse!
   procesarFicheroBanco(contenidoBase64: String!): [MovimientoBancario!]!
+  migrarContaPlus(TenantId: String!, Ejercicio: String!, FileKey: String!): Boolean!
 }
 
 type Empresa {
@@ -42,6 +45,20 @@ type Modelo303Result {
   IvaDevengado: Float!
   IvaDeducible: Float!
   Resultado: Float!
+}
+
+type Modelo390Result {
+  Ejercicio: String!
+  IvaDevengado: Float!
+  IvaDeducible: Float!
+  Resultado: Float!
+}
+
+type Modelo347Result {
+  SubcuentaId: String!
+  Nombre: String!
+  Nif: String
+  TotalOperaciones: Float!
 }
 
 type Asiento {

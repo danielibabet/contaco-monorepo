@@ -137,7 +137,6 @@ export default function LibroMayorPage() {
     },
     { field: 'Fecha', headerName: 'Fecha', width: 120, sortable: true },
     { field: 'IdAsiento', headerName: 'Asiento', width: 100 },
-    { field: 'Documento', headerName: 'Documento', width: 130 },
     { field: 'Concepto', headerName: 'Concepto', flex: 1, filter: true },
     { 
       field: 'Debe', 

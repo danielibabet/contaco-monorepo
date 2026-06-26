@@ -73,16 +73,16 @@ export default function SubcuentasPage() {
 
   return (
     <div className="flex flex-col h-full gap-4">
-      <header className="flex justify-between items-end border-b pb-4">
+      <header className="flex justify-between items-end border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Plan de Cuentas</h1>
-          <p className="text-gray-500 mt-1">Busca y filtra subcuentas al instante.</p>
+          <h1 className="text-3xl font-black text-slate-900">Plan de Cuentas</h1>
+          <p className="text-slate-500 mt-1 font-medium">Busca y filtra subcuentas al instante.</p>
         </div>
         <div className="w-1/3">
           <input 
             type="text" 
             placeholder="Buscar por número o nombre..." 
-            className="w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 font-semibold transition-all"
             value={quickFilterText}
             onChange={onFilterTextBoxChanged}
           />
@@ -97,8 +97,8 @@ export default function SubcuentasPage() {
 
       <div className="flex-1 w-full relative">
         {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-75 z-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10 backdrop-blur-sm">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
           </div>
         ) : null}
         

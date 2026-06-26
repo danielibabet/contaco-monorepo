@@ -3,14 +3,14 @@ import AsientoGrid from "@/components/AsientoGrid";
 export default function Home() {
   return (
     <div className="flex flex-col gap-6 h-screen">
-      <header className="border-b pb-4 mb-4">
-        <h1 className="text-3xl font-bold text-gray-800">Introducción Rápida de Asientos</h1>
-        <p className="text-gray-500 mt-1">
+      <header className="border-b border-slate-200 pb-5 mb-2">
+        <h1 className="text-3xl font-black text-slate-900">Introducción Rápida de Asientos</h1>
+        <p className="text-slate-500 mt-2 font-medium">
           Introduce apuntes al vuelo. Los atajos de teclado de Contaplus están habilitados.
         </p>
       </header>
       
-      <main className="flex-1 bg-white rounded-lg shadow-sm border p-4">
+      <main className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <AsientoGrid />
       </main>
     </div>
