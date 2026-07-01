@@ -39,8 +39,6 @@ export default function Sidebar() {
             href={link.href}
             className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all flex items-center gap-3"
           >
-            {link.icon && <span className="text-lg opacity-80">{link.icon}</span>}
-            {!link.icon && <span className="w-4"></span> /* Spacer if no icon */}
             {link.name}
           </Link>
         ))}
