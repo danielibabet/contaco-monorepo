@@ -46,6 +46,9 @@ export default function TenantSelector() {
             if (!exists) {
               setTenantId(loadedEmpresas[0].TenantId);
             }
+          } else {
+            // Si ha borrado TODAS las empresas, reseteamos el tenantId para no consultar datos fantasma
+            setTenantId('');
           }
         }
       } catch (err) {
