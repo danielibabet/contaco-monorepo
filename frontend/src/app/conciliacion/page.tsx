@@ -157,8 +157,8 @@ export default function ConciliacionPage() {
 
     // 3. Motor de Auto-Match
     const ejecutarAutoMatch = (banco: MovimientoBancario[], mayor: MayorLinea[]) => {
-        let newBanco = [...banco.map(b => ({ ...b, matchedWith: undefined }))];
-        let newMayor = [...mayor.map(m => ({ ...m, matchedWith: undefined }))];
+        let newBanco: MovimientoBancario[] = [...banco.map(b => ({ ...b, matchedWith: undefined }))];
+        let newMayor: MayorLinea[] = [...mayor.map(m => ({ ...m, matchedWith: undefined }))];
 
         const TRES_DIAS_MS = 3 * 24 * 60 * 60 * 1000;
 
