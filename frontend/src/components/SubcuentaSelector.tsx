@@ -39,6 +39,7 @@ export default function SubcuentaSelector({ onSelect, className, autoFocus, menu
             'Content-Type': 'application/json',
             'Authorization': session?.accessToken || ''
           },
+          cache: 'no-store',
           body: JSON.stringify({
             query: LISTAR_SUBCUENTAS_QUERY,
             variables: { TenantId: tenantId }

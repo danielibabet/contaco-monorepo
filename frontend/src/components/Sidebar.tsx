@@ -7,18 +7,18 @@ import ThemeToggle from './ThemeToggle';
 
 export default function Sidebar() {
   const links = [
-    { name: 'Panel de Control', href: '/' },
     { name: 'Asiento Diario', href: '/' },
     { name: 'Diario Histórico', href: '/diario' },
     { name: 'Subcuentas', href: '/subcuentas' },
     { name: 'Libro Mayor', href: '/mayor' },
-    { name: 'Conciliación Bancaria', href: '/conciliacion', icon: '🏦' },
-    { name: 'Balance Sumas y Saldos', href: '/balances', icon: '⚖️' },
-    { name: 'Balance de Situación', href: '/situacion', icon: '🏛️' },
-    { name: 'Pérdidas y Ganancias', href: '/pyg', icon: '📈' },
-    { name: 'Modelos Fiscales (303, 390, 347)', href: '/modelos', icon: '🏛️' },
-    { name: 'Cierre Anual', href: '/cierre', icon: '🔒' },
+    { name: 'Conciliación Bancaria', href: '/conciliacion' },
+    { name: 'Balance Sumas y Saldos', href: '/balances' },
+    { name: 'Balance de Situación', href: '/situacion' },
+    { name: 'Pérdidas y Ganancias', href: '/pyg' },
+    { name: 'Modelos Fiscales (303, 390, 347)', href: '/modelos' },
+    { name: 'Cierre Anual', href: '/cierre' },
     { name: 'Migración DBF', href: '/migracion' },
+    { name: 'Configuración de Empresas', href: '/empresas' },
   ];
 
   return (

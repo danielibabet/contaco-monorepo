@@ -7,19 +7,15 @@ import { useTenant } from '@/context/TenantContext';
 import { getSession } from 'next-auth/react';
 
 const GENERAR_URL_SUBIDA = `
-  mutation GenerarUrlSubida($TenantId: String!, $Filename: String!, $ContentType: String!) {
-    generarUrlSubida(TenantId: $TenantId, Filename: $Filename, ContentType: $ContentType) {
-      UploadUrl
-      FileKey
+  mutation GenerarUrlSubida($TenantId: String!, $Ejercicio: String!, $IdAsiento: String!, $Filename: String!) {
+    generarUrlSubida(TenantId: $TenantId, Ejercicio: $Ejercicio, IdAsiento: $IdAsiento, NombreArchivo: $Filename) {
+      UploadUrl: Url
+      FileKey: S3Key
     }
   }
 `;
 
-const MIGRAR_CONTAPLUS = `
-  mutation MigrarContaPlus($TenantId: String!, $Ejercicio: String!, $FileKey: String!) {
-    migrarContaPlus(TenantId: $TenantId, Ejercicio: $Ejercicio, FileKey: $FileKey)
-  }
-`;
+
 
 export default function MigracionPage() {
   const { tenantId, ejercicio } = useTenant();
@@ -34,6 +30,7 @@ export default function MigracionPage() {
               'Content-Type': 'application/json',
               'Authorization': session?.accessToken || ''
           },
+          cache: 'no-store',
           body: JSON.stringify({ query, variables })
       });
       const json = await res.json();
@@ -45,8 +42,8 @@ export default function MigracionPage() {
     if (acceptedFiles.length === 0) return;
 
     const file = acceptedFiles[0];
-    if (!file.name.toLowerCase().endsWith('.dat')) {
-      toast.error('Por favor, selecciona un archivo .DAT válido (ej. SP_C_2026.DAT).');
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      toast.error('Por favor, selecciona un archivo .ZIP válido (ej. backup.zip).');
       return;
     }
 
@@ -64,8 +61,9 @@ export default function MigracionPage() {
         // 1. Obtener URL pre-firmada
         const uploadData = await fetchGraphQL(GENERAR_URL_SUBIDA, {
             TenantId: tenantId,
-            Filename: file.name,
-            ContentType: 'application/octet-stream'
+            Ejercicio: ejercicio,
+            IdAsiento: "MIGRACION",
+            Filename: file.name
         });
         
         const { UploadUrl, FileKey } = uploadData.generarUrlSubida;
@@ -80,16 +78,8 @@ export default function MigracionPage() {
         if (!putRes.ok) throw new Error("Error al subir el archivo a S3");
 
         // 3. Procesar archivo en backend (puede tardar hasta 2 minutos)
-        toast.loading('Paso 2/2: Descomprimiendo, analizando DBF e inyectando datos. Esto puede tardar varios minutos...', { id: loadingToast });
-        
-        await fetchGraphQL(MIGRAR_CONTAPLUS, {
-            TenantId: tenantId,
-            Ejercicio: ejercicio,
-            FileKey: FileKey
-        });
-
-        toast.success('¡Migración completada con éxito!', { id: loadingToast, duration: 8000 });
-        setResult("La importación de las subcuentas y el diario desde la copia de seguridad se ha realizado correctamente. Ya puedes ir a la vista del Mayor y Balance para revisarlo.");
+        toast.success('¡Archivo subido! Procesando en background...', { id: loadingToast, duration: 8000 });
+        setResult("La importación masiva se está ejecutando en segundo plano. Los apuntes irán apareciendo en el Diario a lo largo de los próximos minutos a medida que SQS los procese.");
         
     } catch (error: any) {
         console.error("Migración error:", error);
@@ -107,7 +97,7 @@ export default function MigracionPage() {
       <header className="border-b border-slate-200 dark:border-slate-700 pb-5">
         <h1 className="text-3xl font-black text-slate-900">Migración directa de ContaPlus</h1>
         <p className="text-slate-500 mt-2 font-medium">
-          Restaura una copia de seguridad nativa. Sube tu archivo <strong className="text-indigo-600">SP_C_XXXX.DAT</strong> para extraer e inyectar el catálogo de cuentas y los asientos del ejercicio automáticamente.
+          Sube tu copia de seguridad estructurada en <strong className="text-indigo-600">.ZIP</strong>. SQS procesará los archivos DBF en segundo plano para evitar bloqueos.
         </p>
       </header>
       
@@ -118,7 +108,7 @@ export default function MigracionPage() {
           isDragActive ? 'border-indigo-500 bg-indigo-50 cursor-pointer scale-105 shadow-md' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer shadow-sm'
         }`}
       >
-        <input {...getInputProps()} disabled={isUploading} accept=".dat" />
+        <input {...getInputProps()} disabled={isUploading} accept=".zip" />
         <div className="flex flex-col items-center gap-4">
           <svg className="w-14 h-14 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -127,7 +117,7 @@ export default function MigracionPage() {
             <p className="text-xl font-black text-indigo-600">Suelta tu archivo DAT aquí...</p>
           ) : (
             <div>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Arrastra y suelta tu copia de seguridad (.DAT) aquí</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Arrastra y suelta tu copia de seguridad (.ZIP) aquí</p>
               <p className="text-sm font-medium text-slate-500 mt-2">o haz clic para explorar tus carpetas</p>
             </div>
           )}
@@ -138,8 +128,8 @@ export default function MigracionPage() {
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
             <div>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block">Procesando copia de seguridad...</span>
-                <span className="text-xs text-slate-500">Por favor no cierres ni actualices la página. Este proceso extrae los DBF e inyecta la base de datos de manera masiva.</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block">Subiendo a AWS...</span>
+                <span className="text-xs text-slate-500">Por favor no cierres la página hasta que finalice la subida a S3.</span>
             </div>
         </div>
       )}

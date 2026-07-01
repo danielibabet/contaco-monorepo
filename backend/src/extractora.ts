@@ -8,10 +8,25 @@ import { S3Event } from 'aws-lambda';
 const AdmZip = require('adm-zip');
 import { DBFFile } from 'dbffile';
 import { pipeline } from 'stream/promises';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const s3Client = new S3Client({});
 const sqsClient = new SQSClient({});
+
+function findFileIgnoreCase(dir: string, filename: string): string | null {
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+    for (const item of items) {
+        if (item.isDirectory()) {
+            const found = findFileIgnoreCase(path.join(dir, item.name), filename);
+            if (found) return found;
+        } else {
+            if (item.name.toLowerCase() === filename.toLowerCase()) {
+                return path.join(dir, item.name);
+            }
+        }
+    }
+    return null;
+}
 
 const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL || '';
 
@@ -49,17 +64,16 @@ export const handler = async (event: S3Event) => {
         const zip = new AdmZip(zipPath);
         zip.extractAllTo(tmpDir, true);
 
-        const files = fs.readdirSync(tmpDir);
-        const subctaFile = files.find(f => f.toLowerCase() === 'subcta.dbf');
-        const diarioFile = files.find(f => f.toLowerCase() === 'diario.dbf');
+        const subctaFilePath = findFileIgnoreCase(tmpDir, 'subcta.dbf');
+        const diarioFilePath = findFileIgnoreCase(tmpDir, 'diario.dbf');
 
-        if (!subctaFile || !diarioFile) {
-            throw new Error("Faltan Subcta.dbf o Diario.dbf");
+        if (!subctaFilePath || !diarioFilePath) {
+            throw new Error("Faltan Subcta.dbf o Diario.dbf en el archivo ZIP");
         }
 
         // 1. MIGRAR SUBCUENTAS
-        console.log("Parseando " + subctaFile);
-        const dbfSubcta = await DBFFile.open(path.join(tmpDir, subctaFile), { encoding: 'latin1' });
+        console.log("Parseando " + subctaFilePath);
+        const dbfSubcta = await DBFFile.open(subctaFilePath, { encoding: 'latin1' });
         const subcuentas = await dbfSubcta.readRecords();
         
         let batch: any[] = [];
@@ -70,14 +84,17 @@ export const handler = async (event: S3Event) => {
             if (!cod) continue;
 
             batch.push({
-                Id: uuidv4(),
+                Id: crypto.randomUUID(),
                 MessageBody: JSON.stringify({
-                    PK: TenantId,
+                    PK: `TENANT#${TenantId}`,
                     SK: `SUBC#${cod}`,
-                    SubcuentaId: cod,
-                    Nombre: titulo,
-                    Nif: nif,
-                    CreatedAt: new Date().toISOString()
+                    Type: 'Subcuenta',
+                    CodSubcuenta: cod,
+                    Descripcion: titulo,
+                    NIF: nif,
+                    CreatedAt: new Date().toISOString(),
+                    GSI1PK: `TENANT#${TenantId}#SUBCUENTAS`,
+                    GSI1SK: `SUBC#${cod}`
                 })
             });
 
@@ -89,14 +106,14 @@ export const handler = async (event: S3Event) => {
         if (batch.length > 0) await sendToSQS(batch);
 
         // 2. MIGRAR DIARIO
-        console.log("Parseando " + diarioFile);
-        const dbfDiario = await DBFFile.open(path.join(tmpDir, diarioFile), { encoding: 'latin1' });
+        console.log("Parseando " + diarioFilePath);
+        const dbfDiario = await DBFFile.open(diarioFilePath, { encoding: 'latin1' });
         const asientos = await dbfDiario.readRecords();
         
         const asientosGrouped = new Map<string, any[]>();
         
         for (const row of asientos) {
-            const numAsiento = row.ASIENTO || 0;
+            const numAsiento = row.ASIEN || row.ASIENTO || 0;
             let fechaStr = Ejercicio + '-01-01';
             if (row.FECHA) {
                 if (row.FECHA instanceof Date) {
@@ -108,39 +125,84 @@ export const handler = async (event: S3Event) => {
             }
             if (!fechaStr.startsWith(Ejercicio)) continue;
 
-            const key = `${fechaStr}#${numAsiento}`;
+            // Agrupar solo por numAsiento, para evitar separar un mismo asiento si tiene líneas con fechas ligeramente distintas
+            const key = `${numAsiento}`;
             if (!asientosGrouped.has(key)) asientosGrouped.set(key, []);
             asientosGrouped.get(key)!.push(row);
         }
 
         batch = [];
-        for (const [key, lineasFox] of asientosGrouped.entries()) {
-            const [fechaStr, numAsiento] = key.split('#');
-            const lineasNuestras = lineasFox.map(l => ({
-                Subcuenta: (l.SUBCUENTA || '').toString().trim(),
-                Concepto: (l.CONCEPTO || '').toString().trim(),
-                Documento: (l.DOCUM || '').toString().trim(),
-                Debe: parseFloat(l.DEBE || 0) || 0,
-                Haber: parseFloat(l.HABER || 0) || 0,
-            }));
+        for (const [numAsientoStr, lineasFox] of asientosGrouped.entries()) {
+            // Heredamos la fecha del asiento de su primera línea
+            let fechaStr = Ejercicio + '-01-01';
+            const firstRow = lineasFox[0];
+            if (firstRow.FECHA) {
+                if (firstRow.FECHA instanceof Date) {
+                    fechaStr = firstRow.FECHA.toISOString().split('T')[0];
+                } else {
+                    const f = firstRow.FECHA.toString().trim();
+                    if (f.length === 8) fechaStr = `${f.substring(0,4)}-${f.substring(4,6)}-${f.substring(6,8)}`;
+                }
+            }
+            
+            const idAsiento = String(numAsientoStr).padStart(6, '0');
+            const pkCabecera = `TENANT#${TenantId}#EJER#${Ejercicio}`;
+            const skCabecera = `ASIENTO#${fechaStr}#${idAsiento}`;
+            const now = new Date().toISOString();
 
+            // Mensaje de Cabecera
             batch.push({
-                Id: uuidv4(),
+                Id: crypto.randomUUID(),
                 MessageBody: JSON.stringify({
-                    PK: TenantId,
-                    SK: `ASIENTO#${fechaStr}#${String(numAsiento).padStart(6, '0')}`,
-                    TenantId: TenantId,
-                    Ejercicio: Ejercicio,
-                    Numero: parseInt(numAsiento),
+                    PK: pkCabecera,
+                    SK: skCabecera,
+                    Type: 'Asiento',
+                    IdAsiento: idAsiento,
                     Fecha: fechaStr,
-                    Lineas: lineasNuestras,
-                    Estado: 'ACTIVO',
-                    CreatedAt: new Date().toISOString(),
-                    UpdatedAt: new Date().toISOString()
+                    Observaciones: 'Migración ContaPlus',
+                    Usuario: 'sistema',
+                    Estado: 'Cuadrado',
+                    CreatedAt: now
                 })
             });
 
-            if (batch.length === 10) {
+            if (batch.length >= 10) {
+                await sendToSQS(batch);
+                batch = [];
+            }
+
+            // Mensajes de Apuntes
+            for (let index = 0; index < lineasFox.length; index++) {
+                const l = lineasFox[index];
+                const linea = (index + 1).toString().padStart(4, '0');
+                const subcuenta = (l.SUBCTA || l.SUBCUENTA || '').toString().trim();
+                
+                batch.push({
+                    Id: crypto.randomUUID(),
+                    MessageBody: JSON.stringify({
+                        PK: pkCabecera,
+                        SK: `APUNTE#${idAsiento}#${linea}`,
+                        Type: 'Apunte',
+                        IdAsiento: idAsiento,
+                        Linea: linea,
+                        Fecha: fechaStr,
+                        SubcuentaId: subcuenta,
+                        Concepto: (l.CONCEPTO || '').toString().trim(),
+                        Documento: (l.DOCUMENTO || l.DOCUM || '').toString().trim(),
+                        Debe: parseFloat(l.EURODEBE || l.PTADEBE || l.DEBE || 0) || 0,
+                        Haber: parseFloat(l.EUROHABER || l.PTAHABER || l.HABER || 0) || 0,
+                        GSI1PK: `TENANT#${TenantId}#EJER#${Ejercicio}#SUBC#${subcuenta}`,
+                        GSI1SK: `FECHA#${fechaStr}#APUNTE#${idAsiento}#${linea}`
+                    })
+                });
+
+                if (batch.length >= 10) {
+                    await sendToSQS(batch);
+                    batch = [];
+                }
+            }
+
+            if (batch.length >= 10) {
                 await sendToSQS(batch);
                 batch = [];
             }

@@ -85,6 +85,7 @@ export default function LibroMayorPage() {
           'Content-Type': 'application/json',
           'Authorization': session?.accessToken || ''
         },
+        cache: 'no-store',
         body: JSON.stringify({
           query: ALTERNAR_PUNTEO_MUTATION,
           variables: {
@@ -189,6 +190,7 @@ export default function LibroMayorPage() {
           'Content-Type': 'application/json',
           'Authorization': session?.accessToken || ''
         },
+        cache: 'no-store',
         body: JSON.stringify({
           query: OBTENER_MAYOR_QUERY,
           variables: { 

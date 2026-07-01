@@ -65,6 +65,7 @@ export default function DiarioPage() {
           'Content-Type': 'application/json',
           'Authorization': session.accessToken,
         },
+        cache: 'no-store',
         body: JSON.stringify({
           query: OBTENER_DIARIO_QUERY,
           variables: { TenantId: tenantId, Ejercicio: ejercicio }

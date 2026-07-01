@@ -45,6 +45,7 @@ export default function SituacionPage() {
           'Content-Type': 'application/json',
           'Authorization': session.accessToken,
         },
+        cache: 'no-store',
         body: JSON.stringify({
           query: OBTENER_BALANCE_QUERY,
           variables: { TenantId: tenantId, Ejercicio: ejercicio }

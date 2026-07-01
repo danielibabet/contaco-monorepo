@@ -5,17 +5,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "esbuild src/*.ts --bundle --platform=node --target=node18 --outdir=dist --external:@aws-sdk/*"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.1073.0",
+    "@aws-sdk/client-dynamodb": "^3.1078.0",
     "@aws-sdk/client-s3": "^3.1074.0",
     "@aws-sdk/client-sqs": "^3.1078.0",
-    "@aws-sdk/lib-dynamodb": "^3.1073.0",
+    "@aws-sdk/lib-dynamodb": "^3.1078.0",
     "@aws-sdk/s3-request-presigner": "^3.1074.0",
     "adm-zip": "^0.5.17",
     "dbffile": "^1.12.0",

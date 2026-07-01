@@ -89,7 +89,7 @@ export default function ModelosPage() {
                 });
             }
 
-            const res = await fetch(process.env.NEXT_PUBLIC_API_URL || '', { method: 'POST', headers, body });
+            const res = await fetch(process.env.NEXT_PUBLIC_API_URL || '', { method: 'POST', headers, cache: 'no-store', body });
             const json = await res.json();
             
             if (json.errors) throw new Error(json.errors[0].message);

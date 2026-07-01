@@ -8,11 +8,18 @@ const docClient = DynamoDBDocumentClient.from(client);
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const handler = async (event: SQSEvent) => {
-    // 1. Extraer los items de la cola SQS
-    const putRequests = event.Records.map(record => {
+    // 1. Extraer los items de la cola SQS y deduplicarlos por PK y SK
+    const uniqueItems = new Map<string, any>();
+    
+    event.Records.forEach(record => {
         const payload = JSON.parse(record.body); // Ej: { PK: "...", SK: "...", ... }
-        return { PutRequest: { Item: payload } };
+        const key = `${payload.PK}###${payload.SK}`;
+        uniqueItems.set(key, payload); // El último sobreescribe al anterior si hay duplicados
     });
+
+    const putRequests = Array.from(uniqueItems.values()).map(item => ({
+        PutRequest: { Item: item }
+    }));
 
     if (putRequests.length === 0) return;
 

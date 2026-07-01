@@ -37,7 +37,16 @@ export default function TenantSelector() {
 
         const json = await res.json();
         if (json.data && json.data.listarEmpresas) {
-          setEmpresas(json.data.listarEmpresas);
+          const loadedEmpresas = json.data.listarEmpresas;
+          setEmpresas(loadedEmpresas);
+          // Sync con context si el actual no existe
+          if (loadedEmpresas.length > 0) {
+            const currentTenant = localStorage.getItem('contaco_tenantId') || tenantId;
+            const exists = loadedEmpresas.find((e: any) => e.TenantId === currentTenant);
+            if (!exists) {
+              setTenantId(loadedEmpresas[0].TenantId);
+            }
+          }
         }
       } catch (err) {
         console.error("Error al cargar empresas:", err);

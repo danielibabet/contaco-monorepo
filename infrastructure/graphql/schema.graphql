@@ -25,11 +25,38 @@ type Mutation {
   procesarFicheroBanco(contenidoBase64: String!): [MovimientoBancario!]!
   migrarContaPlus(TenantId: String!, Ejercicio: String!, FileKey: String!): Boolean!
   extraerOcrFactura(S3Key: String!): OcrResult!
+  crearEmpresa(input: CrearEmpresaInput!): Empresa!
+  editarEmpresa(input: EditarEmpresaInput!): Empresa!
+  borrarEmpresa(TenantId: String!): Boolean!
 }
 
 type Empresa {
   TenantId: String!
   Nombre: String!
+  RazonSocial: String
+  NIF: String
+  Direccion: String
+  Poblacion: String
+  CodigoPostal: String
+}
+
+input CrearEmpresaInput {
+  Nombre: String!
+  RazonSocial: String
+  NIF: String
+  Direccion: String
+  Poblacion: String
+  CodigoPostal: String
+}
+
+input EditarEmpresaInput {
+  TenantId: String!
+  Nombre: String!
+  RazonSocial: String
+  NIF: String
+  Direccion: String
+  Poblacion: String
+  CodigoPostal: String
 }
 
 type Subcuenta {

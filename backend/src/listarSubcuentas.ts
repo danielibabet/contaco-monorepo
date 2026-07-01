@@ -17,19 +17,29 @@ export const handler = async (event: any) => {
     }
 
     try {
-        const command = new QueryCommand({
-            TableName: TABLE_NAME,
-            KeyConditionExpression: "PK = :pk AND begins_with(SK, :skPrefix)",
-            ExpressionAttributeValues: {
-                ":pk": `TENANT#${TenantId}`,
-                ":skPrefix": "SUBC#"
-            }
-        });
+        let items: any[] = [];
+        let lastEvaluatedKey: any = undefined;
 
-        const result = await docClient.send(command);
+        do {
+            const command = new QueryCommand({
+                TableName: TABLE_NAME,
+                KeyConditionExpression: "PK = :pk AND begins_with(SK, :skPrefix)",
+                ExpressionAttributeValues: {
+                    ":pk": `TENANT#${TenantId}`,
+                    ":skPrefix": "SUBC#"
+                },
+                ExclusiveStartKey: lastEvaluatedKey
+            });
+
+            const result = await docClient.send(command);
+            if (result.Items) {
+                items = items.concat(result.Items);
+            }
+            lastEvaluatedKey = result.LastEvaluatedKey;
+        } while (lastEvaluatedKey);
         
         // Mapear el resultado para adaptarlo al schema (CodSubcuenta, Descripcion)
-        return (result.Items || []).map(item => ({
+        return items.map(item => ({
             CodSubcuenta: item.SK.replace('SUBC#', ''),
             Descripcion: item.Descripcion || ''
         }));

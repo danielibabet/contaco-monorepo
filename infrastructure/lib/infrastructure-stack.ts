@@ -53,6 +53,9 @@ export class InfrastructureStack extends cdk.Stack {
         logoutUrls: ['http://localhost:3000'],
       },
       supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.COGNITO],
+      accessTokenValidity: cdk.Duration.days(1),
+      idTokenValidity: cdk.Duration.days(1),
+      refreshTokenValidity: cdk.Duration.days(30),
     });
 
     const table = new dynamodb.Table(this, 'ContaCoTable', {
@@ -102,6 +105,7 @@ export class InfrastructureStack extends cdk.Stack {
     const listarSubcuentasLambda = new lambda.Function(this, 'ListarSubcuentasLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'listarSubcuentas.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
     });
@@ -109,6 +113,7 @@ export class InfrastructureStack extends cdk.Stack {
     const obtenerMayorLambda = new lambda.Function(this, 'ObtenerMayorLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerMayor.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
     });
@@ -116,6 +121,7 @@ export class InfrastructureStack extends cdk.Stack {
     const obtenerBalanceLambda = new lambda.Function(this, 'ObtenerBalanceLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerBalanceSumasSaldos.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
     });
@@ -128,9 +134,9 @@ export class InfrastructureStack extends cdk.Stack {
       environment: { TABLE_NAME: table.tableName },
     });
 
-    const listarEmpresasLambda = new lambda.Function(this, 'ListarEmpresasLambda', {
+    const gestionarEmpresasLambda = new lambda.Function(this, 'GestionarEmpresasLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'listarEmpresas.handler',
+      handler: 'gestionarEmpresas.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
     });
@@ -138,6 +144,7 @@ export class InfrastructureStack extends cdk.Stack {
     const obtenerDiarioLambda = new lambda.Function(this, 'ObtenerDiarioLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerDiario.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
     });
@@ -159,6 +166,7 @@ export class InfrastructureStack extends cdk.Stack {
     const calcularModelo303Lambda = new lambda.Function(this, 'CalcularModelo303Lambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'calcularModelo303.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
     });
@@ -166,6 +174,7 @@ export class InfrastructureStack extends cdk.Stack {
     const calcularModelo390Lambda = new lambda.Function(this, 'CalcularModelo390Lambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'calcularModelo390.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
     });
@@ -262,7 +271,7 @@ export class InfrastructureStack extends cdk.Stack {
     table.grantReadData(obtenerMayorLambda);
     table.grantReadData(obtenerBalanceLambda);
     table.grantReadWriteData(cerrarEjercicioLambda);
-    table.grantReadData(listarEmpresasLambda);
+    table.grantReadWriteData(gestionarEmpresasLambda);
     table.grantReadData(obtenerDiarioLambda);
     table.grantReadData(obtenerAsientoLambda);
     table.grantReadWriteData(borrarAsientoLambda);
@@ -295,7 +304,7 @@ export class InfrastructureStack extends cdk.Stack {
     const mayorDataSource = api.addLambdaDataSource('MayorDS', obtenerMayorLambda);
     const balanceDataSource = api.addLambdaDataSource('BalanceDS', obtenerBalanceLambda);
     const cierreDataSource = api.addLambdaDataSource('CierreDS', cerrarEjercicioLambda);
-    const empresasDataSource = api.addLambdaDataSource('EmpresasDS', listarEmpresasLambda);
+    const empresasDataSource = api.addLambdaDataSource('EmpresasDS', gestionarEmpresasLambda);
     const diarioDataSource = api.addLambdaDataSource('DiarioDS', obtenerDiarioLambda);
     const borrarDataSource = api.addLambdaDataSource('BorrarAsientoDS', borrarAsientoLambda);
     const editarDataSource = api.addLambdaDataSource('EditarAsientoDS', editarAsientoLambda);
@@ -316,6 +325,9 @@ export class InfrastructureStack extends cdk.Stack {
     balanceDataSource.createResolver('ObtenerBalanceResolver', { typeName: 'Query', fieldName: 'obtenerBalanceSumasSaldos' });
     cierreDataSource.createResolver('CerrarEjercicioResolver', { typeName: 'Mutation', fieldName: 'cerrarEjercicio' });
     empresasDataSource.createResolver('ListarEmpresasResolver', { typeName: 'Query', fieldName: 'listarEmpresas' });
+    empresasDataSource.createResolver('CrearEmpresaResolver', { typeName: 'Mutation', fieldName: 'crearEmpresa' });
+    empresasDataSource.createResolver('EditarEmpresaResolver', { typeName: 'Mutation', fieldName: 'editarEmpresa' });
+    empresasDataSource.createResolver('BorrarEmpresaResolver', { typeName: 'Mutation', fieldName: 'borrarEmpresa' });
     diarioDataSource.createResolver('ObtenerDiarioResolver', { typeName: 'Query', fieldName: 'obtenerDiario' });
     borrarDataSource.createResolver('BorrarAsientoResolver', { typeName: 'Mutation', fieldName: 'borrarAsiento' });
     editarDataSource.createResolver('EditarAsientoResolver', { typeName: 'Mutation', fieldName: 'editarAsiento' });

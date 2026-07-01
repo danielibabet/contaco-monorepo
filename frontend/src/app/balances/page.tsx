@@ -56,6 +56,7 @@ export default function BalancesPage() {
           'Content-Type': 'application/json',
           'Authorization': session.accessToken,
         },
+        cache: 'no-store',
         body: JSON.stringify({
           query: OBTENER_BALANCE_QUERY,
           variables: { 
@@ -77,7 +78,7 @@ export default function BalancesPage() {
     } finally {
       setLoading(false);
     }
-  }, [nivelFiltro]);
+  }, [nivelFiltro, tenantId, ejercicio]);
 
   const filtrarPorNivel = (datos: any[], nivel: string) => {
     const filtrados = datos.filter(d => d.Nivel === nivel);

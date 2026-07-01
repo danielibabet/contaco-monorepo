@@ -44,6 +44,7 @@ export default function SubcuentasPage() {
           'Content-Type': 'application/json',
           'Authorization': session?.accessToken || ''
         },
+        cache: 'no-store',
         body: JSON.stringify({
           query: LISTAR_SUBCUENTAS_QUERY,
           variables: { TenantId: tenantId }
@@ -61,7 +62,7 @@ export default function SubcuentasPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => {
     fetchSubcuentas();
