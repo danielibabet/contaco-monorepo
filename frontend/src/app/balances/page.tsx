@@ -189,7 +189,7 @@ export default function BalancesPage() {
   };
 
   // Clases CSS condicionales para la fila de totales (Pinned Bottom Row)
-  const getRowStyle = (params: any) => {
+  const getRowStyle = (params: any): any => {
     if (params.node.rowPinned) {
       return descuadre 
         ? { backgroundColor: '#ef4444', color: 'white', fontWeight: 'bold' } 
