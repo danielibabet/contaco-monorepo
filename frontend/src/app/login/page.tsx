@@ -37,18 +37,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
       <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 transform transition-all">
         
-        <div className="flex justify-center mb-6">
-          <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
-            <LogIn className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-          </div>
+        <div className="flex justify-center mb-8">
+          <img src="/logo.png" alt="ContaCo Logo" width={240} className="object-contain" />
         </div>
-
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 text-center mb-2">
-          Bienvenido a ContaCo
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-8">
-          Inicia sesión para acceder a tu panel de control
-        </p>
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm p-4 rounded-xl mb-6 text-center font-medium">
