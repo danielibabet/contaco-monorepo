@@ -24,8 +24,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 min-h-screen flex flex-col fixed shadow-sm z-50 transition-colors">
       <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900/50 flex flex-col items-center">
-        <img src="/logo.png" alt="ContaCo Logo" width={180} height={60} className="mb-1" />
-        <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-widest text-center">Cloud Edition</p>
+        <img src="/logo.png" alt="ContaCo Logo" width={200} className="mb-1 object-contain" />
       </div>
       
       <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
