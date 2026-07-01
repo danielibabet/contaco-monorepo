@@ -7,79 +7,48 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as path from 'path';
 import * as budgets from 'aws-cdk-lib/aws-budgets';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
+import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
 
 export class InfrastructureStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // Añadir Tags globales al stack para organizar la cuenta de AWS
     cdk.Tags.of(this).add('Project', 'ContaCo');
     cdk.Tags.of(this).add('Environment', 'Demo');
     cdk.Tags.of(this).add('ManagedBy', 'CDK');
 
-    // Control de Costes (AWS Budgets)
     new budgets.CfnBudget(this, 'ContaCoBudget', {
       budget: {
         budgetType: 'COST',
         timeUnit: 'MONTHLY',
         budgetLimit: { amount: 5, unit: 'USD' },
         budgetName: 'ContaCo-Spend-Alerts',
-        // Opcional: Filtrar solo por el Tag Project=ContaCo (si Cost Allocation Tags está activado)
-        // costFilters: { TagKeyValue: ['user:Project$ContaCo'] }
       },
       notificationsWithSubscribers: [
-        {
-          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 100 },
-          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
-        },
-        {
-          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 200 },
-          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
-        },
-        {
-          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 300 },
-          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
-        },
-        {
-          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 400 },
-          subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }],
-        }
+        { notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 100 }, subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }] },
       ],
     });
 
-    // 1. Autenticación: Amazon Cognito
     const userPool = new cognito.UserPool(this, 'ContaCoUserPool', {
       userPoolName: 'contaco-users',
-      passwordPolicy: {
-        requireSymbols: false,
-        requireUppercase: true,
-        requireLowercase: true,
-        requireDigits: true,
-        minLength: 8,
-      },
+      passwordPolicy: { requireSymbols: false, requireUppercase: true, requireLowercase: true, requireDigits: true, minLength: 8 },
       selfSignUpEnabled: false, 
       signInAliases: { email: true },
       removalPolicy: cdk.RemovalPolicy.DESTROY, 
     });
 
-    // Añadir Dominio (Requerido por el flujo OAuth de NextAuth)
     const userPoolDomain = userPool.addDomain('ContaCoDomain', {
-      cognitoDomain: {
-        domainPrefix: `contaco-auth-${this.account}`, // Debe ser único a nivel global
-      },
+      cognitoDomain: { domainPrefix: `contaco-auth-${this.account}` },
     });
 
-    // App Client para NextAuth con Client Secret
     const userPoolClient = userPool.addClient('ContaCoNextAuthClient', {
       userPoolClientName: 'contaco-nextauth',
       generateSecret: true,
-      authFlows: {
-        userPassword: true,
-      },
+      authFlows: { userPassword: true },
       oAuth: {
-        flows: {
-          authorizationCodeGrant: true,
-        },
+        flows: { authorizationCodeGrant: true },
         scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID, cognito.OAuthScope.PROFILE],
         callbackUrls: ['http://localhost:3000/api/auth/callback/cognito'],
         logoutUrls: ['http://localhost:3000'],
@@ -87,7 +56,6 @@ export class InfrastructureStack extends cdk.Stack {
       supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.COGNITO],
     });
 
-    // 2. Base de Datos: DynamoDB
     const table = new dynamodb.Table(this, 'ContaCoTable', {
       tableName: 'ContaCoTable',
       partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
@@ -103,7 +71,6 @@ export class InfrastructureStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    // Bucket S3 para Archivo Documental (Fase 19)
     const docsBucket = new s3.Bucket(this, 'ContaCoDocsBucket', {
       bucketName: `contaco-docs-${this.account}`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -112,195 +79,190 @@ export class InfrastructureStack extends cdk.Stack {
       cors: [
         {
           allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT],
-          allowedOrigins: ['*'], // Idealmente en producción limitaríamos al origin de nuestro frontend
+          allowedOrigins: ['*'],
           allowedHeaders: ['*'],
         },
       ],
     });
 
-    // 3. Backend: Lambdas
+    // 1. SQS Queues
+    const dlq = new sqs.Queue(this, 'ImportadorDLQ');
+    const batchWriteQueue = new sqs.Queue(this, 'BatchWriteQueue', {
+      visibilityTimeout: cdk.Duration.seconds(30),
+      deadLetterQueue: { queue: dlq, maxReceiveCount: 3 }
+    });
+
+    // 3. Lambdas
     const crearAsientoLambda = new lambda.Function(this, 'CrearAsientoLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'crearAsiento.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const listarSubcuentasLambda = new lambda.Function(this, 'ListarSubcuentasLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'listarSubcuentas.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const obtenerMayorLambda = new lambda.Function(this, 'ObtenerMayorLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerMayor.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const obtenerBalanceLambda = new lambda.Function(this, 'ObtenerBalanceLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerBalanceSumasSaldos.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const cerrarEjercicioLambda = new lambda.Function(this, 'CerrarEjercicioLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'cerrarEjercicio.handler',
-      timeout: cdk.Duration.seconds(30), // Puede ser un proceso más pesado
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
-    });
-
-    const migrarContaPlusLambda = new lambda.Function(this, 'MigrarContaPlusLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'migrarContaPlus.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-        BUCKET_NAME: docsBucket.bucketName
-      },
-      timeout: cdk.Duration.seconds(120),
-      memorySize: 1024
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const listarEmpresasLambda = new lambda.Function(this, 'ListarEmpresasLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'listarEmpresas.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const obtenerDiarioLambda = new lambda.Function(this, 'ObtenerDiarioLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerDiario.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const borrarAsientoLambda = new lambda.Function(this, 'BorrarAsientoLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'borrarAsiento.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const editarAsientoLambda = new lambda.Function(this, 'EditarAsientoLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'editarAsiento.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const calcularModelo303Lambda = new lambda.Function(this, 'CalcularModelo303Lambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'calcularModelo303.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const calcularModelo390Lambda = new lambda.Function(this, 'CalcularModelo390Lambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'calcularModelo390.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const calcularModelo347Lambda = new lambda.Function(this, 'CalcularModelo347Lambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'calcularModelo347.handler',
-      timeout: cdk.Duration.seconds(30), // Puede ser pesado al iterar todas las subcuentas
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const gestionarPlantillasLambda = new lambda.Function(this, 'GestionarPlantillasLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'gestionarPlantillas.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const alternarPunteoLambda = new lambda.Function(this, 'AlternarPunteoLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'alternarPunteo.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const generarUrlSubidaLambda = new lambda.Function(this, 'GenerarUrlSubidaLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'generarUrlSubida.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-        BUCKET_NAME: docsBucket.bucketName,
-      },
+      environment: { TABLE_NAME: table.tableName, BUCKET_NAME: docsBucket.bucketName },
     });
 
     const obtenerUrlDescargaLambda = new lambda.Function(this, 'ObtenerUrlDescargaLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerUrlDescarga.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        BUCKET_NAME: docsBucket.bucketName,
-      },
+      environment: { BUCKET_NAME: docsBucket.bucketName },
     });
 
     const obtenerAsientoLambda = new lambda.Function(this, 'ObtenerAsientoLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'obtenerAsiento.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+      environment: { TABLE_NAME: table.tableName },
     });
 
     const procesarFicheroBancoLambda = new lambda.Function(this, 'ProcesarFicheroBancoLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'procesarFicheroBanco.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: { TABLE_NAME: table.tableName } // Necesita DDB para AutoMatch
     });
 
-    // Permisos
+    // ÉPICA 1: Lambdas para Importador
+    const extractoraLambda = new lambda.Function(this, 'ExtractoraZipLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'extractora.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 2048,
+      environment: { SQS_QUEUE_URL: batchWriteQueue.queueUrl }
+    });
+    docsBucket.grantRead(extractoraLambda);
+    batchWriteQueue.grantSendMessages(extractoraLambda);
+    docsBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.LambdaDestination(extractoraLambda), { prefix: 'migraciones/' });
+
+    const dbfWriterLambda = new lambda.Function(this, 'DBFWriterLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'writer.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      timeout: cdk.Duration.seconds(30),
+      environment: { TABLE_NAME: table.tableName }
+    });
+    table.grantWriteData(dbfWriterLambda);
+    dbfWriterLambda.addEventSource(new lambdaEventSources.SqsEventSource(batchWriteQueue, { batchSize: 10 }));
+
+    // ÉPICA 2: Lambda OCR Docker
+    const ocrLambda = new lambda.DockerImageFunction(this, 'OcrFacturasLambda', {
+      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '../../backend'), {
+        file: 'ocr.Dockerfile',
+      }),
+      environment: {
+        BUCKET_NAME: docsBucket.bucketName,
+      },
+      timeout: cdk.Duration.minutes(2),
+      memorySize: 1024,
+    });
+    docsBucket.grantRead(ocrLambda);
+
+    // Permisos Restantes
     table.grantWriteData(crearAsientoLambda);
     table.grantReadData(listarSubcuentasLambda);
     table.grantReadData(obtenerMayorLambda);
     table.grantReadData(obtenerBalanceLambda);
     table.grantReadWriteData(cerrarEjercicioLambda);
-    table.grantReadWriteData(migrarContaPlusLambda);
-    docsBucket.grantRead(migrarContaPlusLambda);
     table.grantReadData(listarEmpresasLambda);
     table.grantReadData(obtenerDiarioLambda);
     table.grantReadData(obtenerAsientoLambda);
@@ -312,6 +274,7 @@ export class InfrastructureStack extends cdk.Stack {
     table.grantReadWriteData(gestionarPlantillasLambda);
     table.grantReadWriteData(alternarPunteoLambda);
     table.grantReadWriteData(generarUrlSubidaLambda);
+    table.grantReadData(procesarFicheroBancoLambda);
 
     docsBucket.grantPut(generarUrlSubidaLambda);
     docsBucket.grantRead(obtenerUrlDescargaLambda);
@@ -323,14 +286,11 @@ export class InfrastructureStack extends cdk.Stack {
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.USER_POOL,
-          userPoolConfig: {
-            userPool: userPool,
-          },
+          userPoolConfig: { userPool: userPool },
         },
       },
     });
 
-    // Conectar AppSync con la Lambda
     const lambdaDataSource = api.addLambdaDataSource('LambdaDS', crearAsientoLambda);
     const subcuentasDataSource = api.addLambdaDataSource('SubcuentasDS', listarSubcuentasLambda);
     const mayorDataSource = api.addLambdaDataSource('MayorDS', obtenerMayorLambda);
@@ -349,118 +309,29 @@ export class InfrastructureStack extends cdk.Stack {
     const docDownloadDataSource = api.addLambdaDataSource('DocDownloadDS', obtenerUrlDescargaLambda);
     const obtenerAsientoDataSource = api.addLambdaDataSource('ObtenerAsientoDS', obtenerAsientoLambda);
     const n43DataSource = api.addLambdaDataSource('N43DS', procesarFicheroBancoLambda);
-    const migrarContaPlusDataSource = api.addLambdaDataSource('MigrarContaPlusDS', migrarContaPlusLambda);
+    const ocrDataSource = api.addLambdaDataSource('OcrDS', ocrLambda);
 
-    // Configurar el Resolver para la mutación crearAsiento
-    lambdaDataSource.createResolver('CrearAsientoResolver', {
-      typeName: 'Mutation',
-      fieldName: 'crearAsiento',
-    });
-
-    // Configurar el Resolver para la query listarSubcuentas
-    subcuentasDataSource.createResolver('ListarSubcuentasResolver', {
-      typeName: 'Query',
-      fieldName: 'listarSubcuentas',
-    });
-
-    // Configurar el Resolver para la query obtenerMayor
-    mayorDataSource.createResolver('ObtenerMayorResolver', {
-      typeName: 'Query',
-      fieldName: 'obtenerMayor',
-    });
-
-    // Configurar el Resolver para la query obtenerBalanceSumasSaldos
-    balanceDataSource.createResolver('ObtenerBalanceResolver', {
-      typeName: 'Query',
-      fieldName: 'obtenerBalanceSumasSaldos',
-    });
-
-    // Configurar el Resolver para la mutación cerrarEjercicio
-    cierreDataSource.createResolver('CerrarEjercicioResolver', {
-      typeName: 'Mutation',
-      fieldName: 'cerrarEjercicio',
-    });
-
-    // Configurar el Resolver para la query listarEmpresas
-    empresasDataSource.createResolver('ListarEmpresasResolver', {
-      typeName: 'Query',
-      fieldName: 'listarEmpresas',
-    });
-
-    diarioDataSource.createResolver('ObtenerDiarioResolver', {
-      typeName: 'Query',
-      fieldName: 'obtenerDiario',
-    });
-
-    borrarDataSource.createResolver('BorrarAsientoResolver', {
-      typeName: 'Mutation',
-      fieldName: 'borrarAsiento',
-    });
-
-    editarDataSource.createResolver('EditarAsientoResolver', {
-      typeName: 'Mutation',
-      fieldName: 'editarAsiento',
-    });
-
-    modelo303DataSource.createResolver('CalcularModelo303Resolver', {
-      typeName: 'Query',
-      fieldName: 'calcularModelo303',
-    });
-
-    modelo390DataSource.createResolver('CalcularModelo390Resolver', {
-      typeName: 'Query',
-      fieldName: 'calcularModelo390',
-    });
-
-    modelo347DataSource.createResolver('CalcularModelo347Resolver', {
-      typeName: 'Query',
-      fieldName: 'calcularModelo347',
-    });
-
-    plantillasDataSource.createResolver('ListarPlantillasResolver', {
-      typeName: 'Query',
-      fieldName: 'listarPlantillas',
-    });
-
-    plantillasDataSource.createResolver('CrearPlantillaResolver', {
-      typeName: 'Mutation',
-      fieldName: 'crearPlantilla',
-    });
-
-    plantillasDataSource.createResolver('BorrarPlantillaResolver', {
-      typeName: 'Mutation',
-      fieldName: 'borrarPlantilla',
-    });
-
-    punteoDataSource.createResolver('AlternarPunteoResolver', {
-      typeName: 'Mutation',
-      fieldName: 'alternarPunteo',
-    });
-
-    docUploadDataSource.createResolver('GenerarUrlSubidaResolver', {
-      typeName: 'Mutation',
-      fieldName: 'generarUrlSubida',
-    });
-
-    docDownloadDataSource.createResolver('ObtenerUrlDescargaResolver', {
-      typeName: 'Query',
-      fieldName: 'obtenerUrlDescarga',
-    });
-
-    obtenerAsientoDataSource.createResolver('ObtenerAsientoResolver', {
-      typeName: 'Query',
-      fieldName: 'obtenerAsiento',
-    });
-
-    n43DataSource.createResolver('ProcesarFicheroBancoResolver', {
-      typeName: 'Mutation',
-      fieldName: 'procesarFicheroBanco',
-    });
-
-    migrarContaPlusDataSource.createResolver('MigrarContaPlusResolver', {
-      typeName: 'Mutation',
-      fieldName: 'migrarContaPlus',
-    });
+    lambdaDataSource.createResolver('CrearAsientoResolver', { typeName: 'Mutation', fieldName: 'crearAsiento' });
+    subcuentasDataSource.createResolver('ListarSubcuentasResolver', { typeName: 'Query', fieldName: 'listarSubcuentas' });
+    mayorDataSource.createResolver('ObtenerMayorResolver', { typeName: 'Query', fieldName: 'obtenerMayor' });
+    balanceDataSource.createResolver('ObtenerBalanceResolver', { typeName: 'Query', fieldName: 'obtenerBalanceSumasSaldos' });
+    cierreDataSource.createResolver('CerrarEjercicioResolver', { typeName: 'Mutation', fieldName: 'cerrarEjercicio' });
+    empresasDataSource.createResolver('ListarEmpresasResolver', { typeName: 'Query', fieldName: 'listarEmpresas' });
+    diarioDataSource.createResolver('ObtenerDiarioResolver', { typeName: 'Query', fieldName: 'obtenerDiario' });
+    borrarDataSource.createResolver('BorrarAsientoResolver', { typeName: 'Mutation', fieldName: 'borrarAsiento' });
+    editarDataSource.createResolver('EditarAsientoResolver', { typeName: 'Mutation', fieldName: 'editarAsiento' });
+    modelo303DataSource.createResolver('CalcularModelo303Resolver', { typeName: 'Query', fieldName: 'calcularModelo303' });
+    modelo390DataSource.createResolver('CalcularModelo390Resolver', { typeName: 'Query', fieldName: 'calcularModelo390' });
+    modelo347DataSource.createResolver('CalcularModelo347Resolver', { typeName: 'Query', fieldName: 'calcularModelo347' });
+    plantillasDataSource.createResolver('ListarPlantillasResolver', { typeName: 'Query', fieldName: 'listarPlantillas' });
+    plantillasDataSource.createResolver('CrearPlantillaResolver', { typeName: 'Mutation', fieldName: 'crearPlantilla' });
+    plantillasDataSource.createResolver('BorrarPlantillaResolver', { typeName: 'Mutation', fieldName: 'borrarPlantilla' });
+    punteoDataSource.createResolver('AlternarPunteoResolver', { typeName: 'Mutation', fieldName: 'alternarPunteo' });
+    docUploadDataSource.createResolver('GenerarUrlSubidaResolver', { typeName: 'Mutation', fieldName: 'generarUrlSubida' });
+    docDownloadDataSource.createResolver('ObtenerUrlDescargaResolver', { typeName: 'Query', fieldName: 'obtenerUrlDescarga' });
+    obtenerAsientoDataSource.createResolver('ObtenerAsientoResolver', { typeName: 'Query', fieldName: 'obtenerAsiento' });
+    n43DataSource.createResolver('ProcesarFicheroBancoResolver', { typeName: 'Mutation', fieldName: 'procesarFicheroBanco' });
+    ocrDataSource.createResolver('ExtraerOcrFacturaResolver', { typeName: 'Mutation', fieldName: 'extraerOcrFactura' });
 
     // Outputs
     new cdk.CfnOutput(this, 'GraphQLAPIURL', { value: api.graphqlUrl });

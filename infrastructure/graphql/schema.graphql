@@ -24,6 +24,7 @@ type Mutation {
   generarUrlSubida(TenantId: String!, Ejercicio: String!, IdAsiento: String!, NombreArchivo: String!): PresignedUrlResponse!
   procesarFicheroBanco(contenidoBase64: String!): [MovimientoBancario!]!
   migrarContaPlus(TenantId: String!, Ejercicio: String!, FileKey: String!): Boolean!
+  extraerOcrFactura(S3Key: String!): OcrResult!
 }
 
 type Empresa {
@@ -38,6 +39,13 @@ type Subcuenta {
   Descripcion: String!
   Nombre: String!
   Nif: String
+}
+
+type OcrResult {
+  NIF: String
+  Total: Float
+  Base: Float
+  TextoCompleto: String!
 }
 
 type Modelo303Result {
@@ -88,6 +96,15 @@ type MovimientoBancario {
   Importe: Float!
   Concepto: String!
   Referencia: String
+  SugerenciaIdAsiento: String
+  SugerenciaLinea: String
+  Fiabilidad: String
+}
+
+type CentroCosteDistribucion {
+  CodigoProyecto: String!
+  Porcentaje: Float!
+  ImporteAsignado: Float!
 }
 
 type Apunte {
@@ -102,6 +119,12 @@ type Apunte {
   Debe: Float!
   Haber: Float!
   Punteado: Boolean
+  DistribucionAnalitica: [CentroCosteDistribucion!]
+}
+
+input CentroCosteInput {
+  CodigoProyecto: String!
+  Porcentaje: Float!
 }
 
 input ApunteInput {
@@ -110,6 +133,7 @@ input ApunteInput {
   Documento: String
   Debe: Float!
   Haber: Float!
+  DistribucionAnalitica: [CentroCosteInput!]
 }
 
 input CrearAsientoInput {

@@ -14,10 +14,12 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1073.0",
     "@aws-sdk/client-s3": "^3.1074.0",
+    "@aws-sdk/client-sqs": "^3.1078.0",
     "@aws-sdk/lib-dynamodb": "^3.1073.0",
     "@aws-sdk/s3-request-presigner": "^3.1074.0",
     "adm-zip": "^0.5.17",
     "dbffile": "^1.12.0",
+    "node-tesseract-ocr": "^2.2.1",
     "uuid": "^14.0.1"
   },
   "devDependencies": {
