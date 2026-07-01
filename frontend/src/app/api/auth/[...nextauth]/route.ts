@@ -4,6 +4,7 @@ import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/cli
 import crypto from "crypto";
 
 const handler = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: '/login',
   },
