@@ -89,7 +89,7 @@ export default function PyGPage() {
     <div className="max-w-5xl mx-auto py-8">
       <header className="mb-8 flex justify-between items-end border-b pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Cuenta de Pérdidas y Ganancias</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Cuenta de Pérdidas y Ganancias</h1>
           <p className="text-gray-500 mt-2">Visión directiva de la rentabilidad (Grupos 6 y 7).</p>
         </div>
         <div className="text-right">
@@ -107,8 +107,8 @@ export default function PyGPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Columna Ingresos */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4 flex justify-between">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 border-b pb-2 mb-4 flex justify-between">
                     <span>Ingresos de Explotación</span>
                     <span className="text-green-600">{totalIngresos.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
                 </h2>
@@ -121,7 +121,7 @@ export default function PyGPage() {
                                 <span className="font-mono text-gray-500">{cta.SubcuentaId}</span>
                                 <span className="text-gray-700 truncate max-w-[200px]">{cta.Descripcion}</span>
                             </div>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
                                 {(cta.SaldoAcreedor - cta.SaldoDeudor).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                             </span>
                         </div>
@@ -130,8 +130,8 @@ export default function PyGPage() {
             </div>
 
             {/* Columna Gastos */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4 flex justify-between">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 border-b pb-2 mb-4 flex justify-between">
                     <span>Gastos de Explotación</span>
                     <span className="text-red-600">{totalGastos.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
                 </h2>
@@ -144,7 +144,7 @@ export default function PyGPage() {
                                 <span className="font-mono text-gray-500">{cta.SubcuentaId}</span>
                                 <span className="text-gray-700 truncate max-w-[200px]">{cta.Descripcion}</span>
                             </div>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
                                 {(cta.SaldoDeudor - cta.SaldoAcreedor).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                             </span>
                         </div>

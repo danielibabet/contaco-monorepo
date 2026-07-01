@@ -1,0 +1,8 @@
+{
+  "InfrastructureStack": {
+    "UserPoolClientId": "3va12c30fjo63legva077mc52r",
+    "UserPoolId": "eu-west-1_0g5jOPLW7",
+    "CognitoIssuerURL": "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_0g5jOPLW7",
+    "GraphQLAPIURL": "https://m5lut4sd2fenfdqodfcv7utysu.appsync-api.eu-west-1.amazonaws.com/graphql"
+  }
+}

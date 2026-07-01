@@ -104,7 +104,7 @@ export default function MigracionPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
-      <header className="border-b border-slate-200 pb-5">
+      <header className="border-b border-slate-200 dark:border-slate-700 pb-5">
         <h1 className="text-3xl font-black text-slate-900">Migración directa de ContaPlus</h1>
         <p className="text-slate-500 mt-2 font-medium">
           Restaura una copia de seguridad nativa. Sube tu archivo <strong className="text-indigo-600">SP_C_XXXX.DAT</strong> para extraer e inyectar el catálogo de cuentas y los asientos del ejercicio automáticamente.
@@ -114,8 +114,8 @@ export default function MigracionPage() {
       <div 
         {...getRootProps()} 
         className={`border-2 border-dashed rounded-2xl p-14 text-center transition-all ${
-          isUploading ? 'opacity-50 cursor-not-allowed border-slate-300 bg-slate-50' : 
-          isDragActive ? 'border-indigo-500 bg-indigo-50 cursor-pointer scale-105 shadow-md' : 'border-slate-300 bg-white hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer shadow-sm'
+          isUploading ? 'opacity-50 cursor-not-allowed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800' : 
+          isDragActive ? 'border-indigo-500 bg-indigo-50 cursor-pointer scale-105 shadow-md' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer shadow-sm'
         }`}
       >
         <input {...getInputProps()} disabled={isUploading} accept=".dat" />
@@ -127,7 +127,7 @@ export default function MigracionPage() {
             <p className="text-xl font-black text-indigo-600">Suelta tu archivo DAT aquí...</p>
           ) : (
             <div>
-              <p className="text-lg font-bold text-slate-700">Arrastra y suelta tu copia de seguridad (.DAT) aquí</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Arrastra y suelta tu copia de seguridad (.DAT) aquí</p>
               <p className="text-sm font-medium text-slate-500 mt-2">o haz clic para explorar tus carpetas</p>
             </div>
           )}
@@ -135,10 +135,10 @@ export default function MigracionPage() {
       </div>
 
       {isUploading && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
             <div>
-                <span className="text-sm font-bold text-slate-700 block">Procesando copia de seguridad...</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block">Procesando copia de seguridad...</span>
                 <span className="text-xs text-slate-500">Por favor no cierres ni actualices la página. Este proceso extrae los DBF e inyecta la base de datos de manera masiva.</span>
             </div>
         </div>

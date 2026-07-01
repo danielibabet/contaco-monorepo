@@ -1,36 +1,82 @@
 import NextAuth from "next-auth";
-import CognitoProvider from "next-auth/providers/cognito";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
 import crypto from "crypto";
 
 const handler = NextAuth({
+  pages: {
+    signIn: '/login',
+  },
   providers: [
-    CognitoProvider({
-      clientId: process.env.COGNITO_CLIENT_ID!,
-      clientSecret: process.env.COGNITO_CLIENT_SECRET!,
-      issuer: process.env.COGNITO_ISSUER!,
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        username: { label: "Email", type: "text" },
+        password: { label: "Contraseña", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) return null;
+
+        const clientId = process.env.COGNITO_CLIENT_ID!;
+        const clientSecret = process.env.COGNITO_CLIENT_SECRET!;
+        const region = process.env.COGNITO_ISSUER?.split('.')[1] || 'eu-west-1';
+
+        const username = credentials.username;
+        const secretHash = crypto
+          .createHmac('SHA256', clientSecret)
+          .update(username + clientId)
+          .digest('base64');
+
+        const client = new CognitoIdentityProviderClient({ region });
+        
+        try {
+          const command = new InitiateAuthCommand({
+            AuthFlow: "USER_PASSWORD_AUTH",
+            ClientId: clientId,
+            AuthParameters: {
+              USERNAME: username,
+              PASSWORD: credentials.password,
+              SECRET_HASH: secretHash
+            }
+          });
+
+          const response = await client.send(command);
+          if (response.AuthenticationResult) {
+            return {
+              id: username,
+              name: username,
+              email: username,
+              access_token: response.AuthenticationResult.AccessToken,
+              refresh_token: response.AuthenticationResult.RefreshToken,
+              expires_in: response.AuthenticationResult.ExpiresIn,
+            };
+          }
+          return null;
+        } catch (error: any) {
+          console.error("Login failed:", error);
+          throw new Error(error.message || "Credenciales incorrectas");
+        }
+      }
     })
   ],
   callbacks: {
-    async jwt({ token, account }) {
-      // Login inicial
-      if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-        token.expiresAt = Math.floor(Date.now() / 1000) + (account.expires_in as number);
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.accessToken = (user as any).access_token;
+        token.refreshToken = (user as any).refresh_token;
+        token.expiresAt = Math.floor(Date.now() / 1000) + ((user as any).expires_in as number);
         return token;
       }
 
-      // Si el token aún es válido (damos 60 segundos de margen)
       if (Math.floor(Date.now() / 1000) < (token.expiresAt as number) - 60) {
         return token;
       }
 
-      // El token ha expirado, lo refrescamos
       try {
         const clientId = process.env.COGNITO_CLIENT_ID!;
         const clientSecret = process.env.COGNITO_CLIENT_SECRET!;
-        const region = process.env.COGNITO_ISSUER?.split('.')[2] || 'eu-west-1';
+        const region = process.env.COGNITO_ISSUER?.split('.')[1] || 'eu-west-1';
 
         const username = token.sub!;
         const secretHash = crypto

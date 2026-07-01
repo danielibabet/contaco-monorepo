@@ -201,14 +201,14 @@ export default function BalancesPage() {
     <div className="flex flex-col gap-6 h-[80vh]">
       <header className="flex justify-between items-center border-b pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Balance de Sumas y Saldos</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Balance de Sumas y Saldos</h1>
           <p className="text-gray-500 mt-1">Comprueba la salud contable y el cuadre general del ejercicio.</p>
         </div>
         <div className="flex gap-3">
           <div className="flex bg-gray-100 p-1 rounded-lg">
-            <button onClick={() => handleNivelChange('3')} className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${nivelFiltro === '3' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>Nivel 3</button>
-            <button onClick={() => handleNivelChange('4')} className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${nivelFiltro === '4' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>Nivel 4</button>
-            <button onClick={() => handleNivelChange('MAX')} className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${nivelFiltro === 'MAX' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>Máximo Desglose</button>
+            <button onClick={() => handleNivelChange('3')} className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${nivelFiltro === '3' ? 'bg-white dark:bg-slate-900 shadow text-blue-600' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100'}`}>Nivel 3</button>
+            <button onClick={() => handleNivelChange('4')} className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${nivelFiltro === '4' ? 'bg-white dark:bg-slate-900 shadow text-blue-600' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100'}`}>Nivel 4</button>
+            <button onClick={() => handleNivelChange('MAX')} className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${nivelFiltro === 'MAX' ? 'bg-white dark:bg-slate-900 shadow text-blue-600' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100'}`}>Máximo Desglose</button>
           </div>
           <button onClick={exportarCsv} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium shadow transition-colors flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -230,7 +230,7 @@ export default function BalancesPage() {
 
       <div className="flex-1 w-full relative">
         {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-slate-900/50 z-10">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : null}

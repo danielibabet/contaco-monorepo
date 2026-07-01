@@ -57,7 +57,7 @@ export default function TenantSelector() {
           value={tenantId}
           onChange={(e) => setTenantId(e.target.value)}
           disabled={loading}
-          className="w-full bg-white border border-slate-300 text-slate-900 font-semibold text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 shadow-sm transition-all"
+          className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 font-semibold text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 block p-2.5 shadow-sm transition-all"
         >
           {loading ? (
             <option>Cargando empresas...</option>
@@ -76,7 +76,7 @@ export default function TenantSelector() {
         <select 
           value={ejercicio}
           onChange={(e) => setEjercicio(e.target.value)}
-          className="w-full bg-white border border-slate-300 text-slate-900 font-semibold text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 shadow-sm transition-all"
+          className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 font-semibold text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 block p-2.5 shadow-sm transition-all"
         >
           <option value="2024">2024</option>
           <option value="2025">2025</option>

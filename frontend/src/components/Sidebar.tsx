@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import TenantSelector from './TenantSelector';
+import ThemeToggle from './ThemeToggle';
 
 export default function Sidebar() {
   const links = [
@@ -21,13 +22,13 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-slate-200 min-h-screen flex flex-col fixed shadow-sm z-50">
-      <div className="p-6 border-b border-slate-200 bg-slate-50/50">
-        <h1 className="text-2xl font-bold tracking-wider text-indigo-700">ContaCo</h1>
+    <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 min-h-screen flex flex-col fixed shadow-sm z-50 transition-colors">
+      <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900/50">
+        <h1 className="text-2xl font-bold tracking-wider text-indigo-700 dark:text-indigo-400">ContaCo</h1>
         <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-widest">Cloud Edition</p>
       </div>
       
-      <div className="px-4 py-3 border-b border-slate-100">
+      <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
         <TenantSelector />
       </div>
 
@@ -36,7 +37,7 @@ export default function Sidebar() {
           <Link 
             key={link.name} 
             href={link.href}
-            className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all flex items-center gap-3"
+            className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all flex items-center gap-3"
           >
             {link.icon && <span className="text-lg opacity-80">{link.icon}</span>}
             {!link.icon && <span className="w-4"></span> /* Spacer if no icon */}
@@ -44,10 +45,11 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="p-4 border-t border-slate-200 bg-slate-50/50 flex flex-col gap-3">
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900/50 flex flex-col gap-3">
+        <ThemeToggle />
         <button 
           onClick={() => signOut()}
-          className="w-full px-4 py-2.5 bg-white border border-slate-300 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-slate-700 rounded-lg transition-colors font-bold text-sm shadow-sm"
+          className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-800 text-slate-700 dark:text-slate-200 rounded-lg transition-colors font-bold text-sm shadow-sm"
         >
           Cerrar Sesión
         </button>

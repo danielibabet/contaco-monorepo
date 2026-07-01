@@ -62,11 +62,11 @@ export default function CierrePage() {
   return (
     <div className="max-w-4xl mx-auto py-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Cierre de Ejercicio</h1>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Cierre de Ejercicio</h1>
         <p className="text-gray-500 mt-2">Automatiza la transición contable al nuevo año. Este proceso generará automáticamente los asientos de regularización, cierre y apertura.</p>
       </header>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-200">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-red-200">
         <h2 className="text-xl font-semibold text-red-600 flex items-center gap-2 mb-4">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
           Danger Zone
@@ -77,7 +77,7 @@ export default function CierrePage() {
           Este proceso es masivo e irreversible y realizará las siguientes acciones en tu contabilidad:
         </p>
         
-        <ul className="list-disc list-inside text-gray-600 mb-8 space-y-2">
+        <ul className="list-disc list-inside text-gray-600 dark:text-gray-400 mb-8 space-y-2">
           <li>Saldará a cero todas las cuentas de los Grupos 6 y 7, traspasando el resultado a la 12900000.</li>
           <li>Generará el Asiento de Cierre (31/12) invirtiendo el saldo de las cuentas de los Grupos 1 al 5.</li>
           <li>Generará el Asiento de Apertura (01/01) para el nuevo ejercicio <strong>{ejercicioNuevo}</strong> con los saldos iniciales.</li>
@@ -95,15 +95,15 @@ export default function CierrePage() {
       {/* Modal de Confirmación */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Confirmar Cierre Anual</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Confirmar Cierre Anual</h3>
             <p className="text-sm text-gray-500 mb-6">
               Para evitar ejecuciones accidentales, por favor escribe la palabra <strong className="text-red-600">CERRAR</strong> para habilitar el botón.
             </p>
             
             <input 
               type="text" 
-              className="w-full border-gray-300 rounded-lg shadow-sm focus:border-red-500 focus:ring-red-500 mb-6"
+              className="w-full border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-red-500 focus:ring-red-500 mb-6"
               placeholder="Escribe CERRAR..."
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}

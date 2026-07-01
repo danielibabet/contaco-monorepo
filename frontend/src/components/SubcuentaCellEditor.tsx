@@ -54,7 +54,7 @@ export default forwardRef((props: ICellEditorParams, ref) => {
     };
 
     return (
-        <div className="w-full h-full min-w-[300px] flex items-center bg-white p-1 rounded shadow-lg border">
+        <div className="w-full h-full min-w-[300px] flex items-center bg-white dark:bg-slate-900 p-1 rounded shadow-lg border">
             <SubcuentaSelector 
                 onSelect={handleSelect} 
                 autoFocus={true} 

@@ -276,7 +276,7 @@ export default function LibroMayorPage() {
     <div className="flex flex-col h-full gap-4">
       <header className="flex justify-between items-end border-b pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Libro Mayor y Conciliación</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Libro Mayor y Conciliación</h1>
           <p className="text-gray-500 mt-1">Extracto de movimientos, punteo y saldo acumulado</p>
         </div>
         {mayorData && (
@@ -291,7 +291,7 @@ export default function LibroMayorPage() {
       </header>
 
       {/* Panel de Filtro */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-4 z-10">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col md:flex-row items-center gap-4 z-10">
         <div className="flex-1 w-full flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Selecciona la Subcuenta (ej. Banco 572):</label>
           <SubcuentaSelector 
@@ -318,9 +318,9 @@ export default function LibroMayorPage() {
         )}
 
         {mayorData && (
-          <div className="flex flex-col items-end bg-gray-50 p-4 rounded-lg border min-w-[200px]">
+          <div className="flex flex-col items-end bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border min-w-[200px]">
              <span className="text-sm text-gray-500 font-medium">Saldo Final</span>
-             <span className={`text-2xl font-bold ${mayorData.SaldoFinal < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+             <span className={`text-2xl font-bold ${mayorData.SaldoFinal < 0 ? 'text-red-600' : 'text-gray-900 dark:text-gray-100'}`}>
                 {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(mayorData.SaldoFinal)}
              </span>
           </div>
@@ -334,7 +334,7 @@ export default function LibroMayorPage() {
       )}
 
       {/* Grid */}
-      <div className="flex-1 w-full h-full bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div className="flex-1 w-full h-full bg-white dark:bg-slate-900 rounded-xl shadow-sm border overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-full text-gray-500">Cargando libro mayor...</div>
         ) : mayorData ? (

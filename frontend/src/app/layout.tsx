@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { TenantProvider } from "@/context/TenantContext";
-import Sidebar from "@/components/Sidebar";
+import { LayoutClientWrapper } from "@/components/LayoutClientWrapper";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,15 +20,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.className} bg-slate-50 text-slate-900 antialiased min-h-screen flex`} suppressHydrationWarning>
-        <Providers>
-          <TenantProvider>
-            <Sidebar />
-            <main className="flex-1 ml-64 p-6 md:p-10 h-screen overflow-y-auto">
-              {children}
-            </main>
-          </TenantProvider>
-        </Providers>
+      <body className={`${inter.className} bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased min-h-screen flex transition-colors`} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Providers>
+            <TenantProvider>
+              <LayoutClientWrapper>
+                {children}
+              </LayoutClientWrapper>
+            </TenantProvider>
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

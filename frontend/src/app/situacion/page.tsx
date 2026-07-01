@@ -121,7 +121,7 @@ export default function SituacionPage() {
     <div className="max-w-5xl mx-auto py-8">
       <header className="mb-8 flex justify-between items-end border-b pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Balance de Situación</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Balance de Situación</h1>
           <p className="text-gray-500 mt-2">Visión patrimonial de la empresa (Activo y Pasivo).</p>
         </div>
       </header>
@@ -133,8 +133,8 @@ export default function SituacionPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Columna Activo */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4 flex justify-between">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 border-b pb-2 mb-4 flex justify-between">
                     <span>Activo</span>
                     <span className="text-blue-600">{totalActivo.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
                 </h2>
@@ -145,7 +145,7 @@ export default function SituacionPage() {
                                 <span className="font-mono text-gray-500">{cta.SubcuentaId}</span>
                                 <span className="text-gray-700 truncate max-w-[200px]">{cta.Descripcion}</span>
                             </div>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
                                 {cta.SaldoDeudor ? cta.SaldoDeudor.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) : Math.abs(cta.SaldoAcreedor).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                             </span>
                         </div>
@@ -154,8 +154,8 @@ export default function SituacionPage() {
             </div>
 
             {/* Columna Pasivo */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4 flex justify-between">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 border-b pb-2 mb-4 flex justify-between">
                     <span>Pasivo y Pat. Neto</span>
                     <span className="text-blue-600">{totalPasivo.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
                 </h2>
@@ -166,7 +166,7 @@ export default function SituacionPage() {
                                 <span className="font-mono text-gray-500">{cta.SubcuentaId}</span>
                                 <span className="text-gray-700 truncate max-w-[200px]">{cta.Descripcion}</span>
                             </div>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
                                 {cta.SaldoAcreedor ? cta.SaldoAcreedor.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) : Math.abs(cta.SaldoDeudor).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                             </span>
                         </div>

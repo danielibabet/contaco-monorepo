@@ -50,6 +50,13 @@ export class InfrastructureStack extends cdk.Stack {
     // 1. Autenticación: Amazon Cognito
     const userPool = new cognito.UserPool(this, 'ContaCoUserPool', {
       userPoolName: 'contaco-users',
+      passwordPolicy: {
+        requireSymbols: false,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireDigits: true,
+        minLength: 8,
+      },
       selfSignUpEnabled: false, 
       signInAliases: { email: true },
       removalPolicy: cdk.RemovalPolicy.DESTROY, 
@@ -66,6 +73,9 @@ export class InfrastructureStack extends cdk.Stack {
     const userPoolClient = userPool.addClient('ContaCoNextAuthClient', {
       userPoolClientName: 'contaco-nextauth',
       generateSecret: true,
+      authFlows: {
+        userPassword: true,
+      },
       oAuth: {
         flows: {
           authorizationCodeGrant: true,

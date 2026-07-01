@@ -1,25 +1,8 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f8fafc; /* Very light slate (slate-50) for background separation */
-  --foreground: #0f172a; /* Slate 900 for pure, high-contrast text */
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-/* No dark mode media query to enforce Light High Contrast theme */
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
 
 /* AG Grid High Contrast & Zebra Overrides */
 .ag-theme-alpine, .ag-theme-legacy {
@@ -53,4 +36,24 @@ body {
 .ag-theme-alpine .ag-input-field-input, .ag-theme-legacy .ag-input-field-input {
   color: #0f172a !important;
   font-weight: 600;
+}
+
+/* Dark Mode Overrides for AG Grid */
+.dark, .dark [class^="ag-"], .dark [class*=" ag-"] {
+  --ag-background-color: #1e293b !important; /* Slate 800 */
+  --ag-foreground-color: #f8fafc !important; /* Slate 50 */
+  --ag-header-background-color: #0f172a !important; /* Slate 900 */
+  --ag-header-foreground-color: #cbd5e1 !important; /* Slate 300 */
+  --ag-odd-row-background-color: #0f172a !important; /* Slate 900 for zebra */
+  --ag-border-color: #334155 !important;
+  --ag-row-border-color: #334155 !important;
+}
+
+.dark .ag-input-field-input, .dark [class^="ag-"] input {
+  color: #f8fafc !important;
+  background-color: #1e293b !important;
+}
+
+.dark .ag-header-cell-text {
+  color: #94a3b8 !important;
 }

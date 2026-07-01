@@ -148,17 +148,17 @@ export default function DiarioPage() {
       <header className="mb-6 flex flex-col gap-4">
         <div className="flex justify-between items-end">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Diario Histórico</h1>
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Diario Histórico</h1>
               <p className="text-gray-500 mt-1">Listado cronológico de todos los apuntes contables del ejercicio {ejercicio}. Haz doble clic en una fila para editar el asiento completo.</p>
             </div>
         </div>
         
         {/* Barra de Filtros */}
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center gap-4 z-10">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row items-center gap-4 z-10">
             <div className="flex items-center gap-3 w-full sm:w-auto">
                 <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">Filtrar por:</label>
                 <select 
-                    className="border border-gray-300 p-2 rounded-lg text-sm bg-white font-medium text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-48"
+                    className="border border-gray-300 dark:border-gray-600 p-2 rounded-lg text-sm bg-white dark:bg-slate-900 font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-48"
                     value={filtroTipo}
                     onChange={(e) => setFiltroTipo(e.target.value)}
                 >
@@ -190,7 +190,7 @@ export default function DiarioPage() {
           {error}
         </div>
       ) : (
-        <div className="flex-1 w-full bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="flex-1 w-full bg-white dark:bg-slate-900 rounded-lg shadow-sm border overflow-hidden">
           {loading && rowData.length === 0 ? (
             <div className="h-full flex items-center justify-center text-gray-500">
               Cargando diario...
@@ -213,20 +213,20 @@ export default function DiarioPage() {
       {/* Modal de Edición */}
       {modalOpen && asientoIdSeleccionado && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-                  <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                      <h3 className="text-xl font-bold text-gray-800">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+                  <div className="p-4 border-b flex justify-between items-center bg-gray-50 dark:bg-slate-800">
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                           Editando Asiento <span className="text-blue-600">#{asientoIdSeleccionado}</span>
                       </h3>
                       <button 
                           onClick={() => handleModalClose(false)}
-                          className="text-gray-500 hover:text-gray-800 p-2"
+                          className="text-gray-500 hover:text-gray-800 dark:text-gray-200 p-2"
                       >
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                       </button>
                   </div>
                   
-                  <div className="p-6 overflow-y-auto flex-1 bg-white">
+                  <div className="p-6 overflow-y-auto flex-1 bg-white dark:bg-slate-900">
                       <AsientoGrid 
                           asientoIdToEdit={asientoIdSeleccionado} 
                           apuntesToEdit={rowData.filter(r => r.IdAsiento === asientoIdSeleccionado)}
