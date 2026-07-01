@@ -38,7 +38,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 transform transition-all">
         
         <div className="flex justify-center mb-8">
-          <img src="/logo.png" alt="ContaCo Logo" width={240} className="object-contain" />
+          <div className="bg-white p-4 rounded-2xl dark:shadow-md">
+            <img src="/logo.png" alt="ContaCo Logo" width={220} className="object-contain" />
+          </div>
         </div>
 
         {error && (
