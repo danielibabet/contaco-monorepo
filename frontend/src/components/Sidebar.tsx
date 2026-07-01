@@ -51,7 +51,7 @@ export default function Sidebar() {
           Cerrar Sesión
         </button>
         <div className="text-xs font-medium text-slate-400 text-center uppercase tracking-wider">
-          Demo Mode - v0.78
+          v0.78 Daniel Ibáñez Betés
         </div>
       </div>
     </div>
