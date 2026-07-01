@@ -24,7 +24,6 @@ export class InfrastructureStack extends cdk.Stack {
         budgetType: 'COST',
         timeUnit: 'MONTHLY',
         budgetLimit: { amount: 5, unit: 'USD' },
-        budgetName: 'ContaCo-Spend-Alerts',
       },
       notificationsWithSubscribers: [
         { notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 100 }, subscribers: [{ subscriptionType: 'EMAIL', address: 'danielibabet@gmail.com' }] },
