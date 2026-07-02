@@ -40,7 +40,7 @@ export default function LoginPage() {
         
         <div className="flex justify-center mb-8">
           <div className="bg-white p-4 rounded-2xl dark:shadow-md">
-            <Image src="/logo.png" alt="ContaCo Logo" width={220} height={73} className="object-contain" priority />
+            <Image src="/logo-contaco.png" alt="ContaCo Logo" width={220} height={73} className="object-contain" priority />
           </div>
         </div>
 
