@@ -7,5 +7,5 @@ export default withAuth({
 });
 
 export const config = {
-  matcher: ["/((?!login|api|_next/static|_next/image|assets|logo.*|favicon.ico).*)"],
+  matcher: ["/((?!login|register|forgot-password|reset-password|verify|api|_next/static|_next/image|assets|logo.*|favicon.ico).*)"],
 };
