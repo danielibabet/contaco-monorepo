@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     const clientId = process.env.COGNITO_CLIENT_ID!;
     const clientSecret = process.env.COGNITO_CLIENT_SECRET!;
-    const region = process.env.COGNITO_ISSUER?.split('.')[2] || 'eu-west-1';
+    const region = process.env.COGNITO_ISSUER?.split('.')[1] || 'eu-west-1';
 
     const secretHash = crypto
       .createHmac('SHA256', clientSecret)
@@ -34,16 +34,8 @@ export async function POST(req: Request) {
     const response = await client.send(command);
 
     return NextResponse.json({ message: "Usuario registrado", userSub: response.UserSub });
-  } catch (error: any) {
-    console.error("Register Error:", error);
-    let errorMessage = "Error al registrar usuario";
-    if (error.name === "UsernameExistsException") {
-      errorMessage = "El usuario ya existe. Por favor, inicia sesión.";
-    } else if (error.name === "InvalidPasswordException") {
-      errorMessage = "La contraseña no cumple los requisitos de seguridad.";
-    } else if (error.name === "InvalidParameterException") {
-      errorMessage = "Parámetros inválidos. Comprueba tu correo.";
-    }
-    return NextResponse.json({ error: errorMessage }, { status: 400 });
+    } catch (error: any) {
+    console.error("Register Error Full:", error);
+    return NextResponse.json({ error: error.message || "Error al registrar usuario", details: JSON.stringify(error) }, { status: 400 });
   }
 }

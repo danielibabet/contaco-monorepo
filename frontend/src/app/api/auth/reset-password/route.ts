@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     const clientId = process.env.COGNITO_CLIENT_ID!;
     const clientSecret = process.env.COGNITO_CLIENT_SECRET!;
-    const region = process.env.COGNITO_ISSUER?.split('.')[2] || 'eu-west-1';
+    const region = process.env.COGNITO_ISSUER?.split('.')[1] || 'eu-west-1';
 
     const secretHash = crypto
       .createHmac('SHA256', clientSecret)
