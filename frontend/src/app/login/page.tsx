@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
+import logoImg from "../../assets/logo.png";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function LoginPage() {
         
         <div className="flex justify-center mb-8">
           <div className="bg-white p-4 rounded-2xl dark:shadow-md">
-            <Image src="/logo-contaco.png" alt="ContaCo Logo" width={220} height={73} className="object-contain" priority />
+            <Image src={logoImg} alt="ContaCo Logo" width={220} className="object-contain" priority />
           </div>
         </div>
 
