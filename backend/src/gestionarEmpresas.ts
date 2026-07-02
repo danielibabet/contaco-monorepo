@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, ScanCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, DeleteCommand, QueryCommand, GetCommand, TransactWriteCommand, BatchGetCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 
 const client = new DynamoDBClient({});
@@ -11,17 +11,22 @@ export const handler = async (event: any) => {
   console.log("gestionarEmpresas event:", JSON.stringify(event, null, 2));
 
   const fieldName = event.info?.fieldName;
+  const sub = event.identity?.claims?.sub;
+
+  if (!sub) {
+    throw new Error("Usuario no autenticado");
+  }
 
   try {
     switch (fieldName) {
       case "listarEmpresas":
-        return await listarEmpresas();
+        return await listarEmpresas(sub);
       case "crearEmpresa":
-        return await crearEmpresa(event.arguments.input);
+        return await crearEmpresa(sub, event.arguments.input);
       case "editarEmpresa":
-        return await editarEmpresa(event.arguments.input);
+        return await editarEmpresa(sub, event.arguments.input);
       case "borrarEmpresa":
-        return await borrarEmpresa(event.arguments.TenantId);
+        return await borrarEmpresa(sub, event.arguments.TenantId);
       default:
         throw new Error(`Operación GraphQL desconocida: ${fieldName}`);
     }
@@ -31,18 +36,57 @@ export const handler = async (event: any) => {
   }
 };
 
-async function listarEmpresas() {
-  const cmd = new ScanCommand({
+async function verificarAccesoTenant(sub: string, tenantId: string) {
+  const cmd = new GetCommand({
     TableName: TABLE_NAME,
-    FilterExpression: "SK = :profile",
+    Key: {
+      PK: `USER#${sub}`,
+      SK: `TENANT#${tenantId}`
+    }
+  });
+  const res = await docClient.send(cmd);
+  if (!res.Item) {
+    throw new Error("No autorizado para acceder a esta empresa");
+  }
+}
+
+async function listarEmpresas(sub: string) {
+  const cmd = new QueryCommand({
+    TableName: TABLE_NAME,
+    KeyConditionExpression: "PK = :pk AND begins_with(SK, :skPrefix)",
     ExpressionAttributeValues: {
-      ":profile": "PROFILE"
+      ":pk": `USER#${sub}`,
+      ":skPrefix": "TENANT#"
     }
   });
 
   const res = await docClient.send(cmd);
   
-  return (res.Items || []).map(item => ({
+  if (!res.Items || res.Items.length === 0) {
+    return [];
+  }
+
+  const tenantIds = res.Items.map(item => item.SK.replace("TENANT#", ""));
+  
+  // En Single-Table Design, con listas cortas es válido hacer Get individuales o BatchGet
+  // Limitado a 100 items por BatchGet. En un SaaS real usaríamos BatchGet en bucle
+  const keys = tenantIds.map(tId => ({ PK: `TENANT#${tId}`, SK: "PROFILE" }));
+  
+  // Dividir en chunks de 100 si hubiese más
+  const chunkedKeys = keys.slice(0, 100); 
+
+  const batchReq = new BatchGetCommand({
+    RequestItems: {
+      [TABLE_NAME]: {
+        Keys: chunkedKeys
+      }
+    }
+  });
+
+  const batchRes = await docClient.send(batchReq);
+  const profiles = batchRes.Responses?.[TABLE_NAME] || [];
+
+  return profiles.map((item: any) => ({
     TenantId: item.PK.replace("TENANT#", ""),
     Nombre: item.Nombre || item.Descripcion || "Empresa Sin Nombre",
     RazonSocial: item.RazonSocial || null,
@@ -53,7 +97,7 @@ async function listarEmpresas() {
   }));
 }
 
-async function crearEmpresa(input: any) {
+async function crearEmpresa(sub: string, input: any) {
   const tenantId = randomUUID();
   const pk = `TENANT#${tenantId}`;
   const sk = "PROFILE";
@@ -72,9 +116,28 @@ async function crearEmpresa(input: any) {
     UpdatedAt: new Date().toISOString()
   };
 
-  await docClient.send(new PutCommand({
-    TableName: TABLE_NAME,
-    Item: empresaItem
+  const userTenantItem = {
+    PK: `USER#${sub}`,
+    SK: `TENANT#${tenantId}`,
+    Type: "UserTenant",
+    CreatedAt: new Date().toISOString()
+  };
+
+  await docClient.send(new TransactWriteCommand({
+    TransactItems: [
+      {
+        Put: {
+          TableName: TABLE_NAME,
+          Item: empresaItem
+        }
+      },
+      {
+        Put: {
+          TableName: TABLE_NAME,
+          Item: userTenantItem
+        }
+      }
+    ]
   }));
 
   return {
@@ -88,7 +151,9 @@ async function crearEmpresa(input: any) {
   };
 }
 
-async function editarEmpresa(input: any) {
+async function editarEmpresa(sub: string, input: any) {
+  await verificarAccesoTenant(sub, input.TenantId);
+
   const pk = `TENANT#${input.TenantId}`;
   const sk = "PROFILE";
 
@@ -105,7 +170,6 @@ async function editarEmpresa(input: any) {
     UpdatedAt: new Date().toISOString()
   };
 
-  // En DynamoDB PutCommand sobrescribe el item si las claves primarias coinciden
   await docClient.send(new PutCommand({
     TableName: TABLE_NAME,
     Item: empresaItem
@@ -122,13 +186,28 @@ async function editarEmpresa(input: any) {
   };
 }
 
-async function borrarEmpresa(tenantId: string) {
+async function borrarEmpresa(sub: string, tenantId: string) {
+  await verificarAccesoTenant(sub, tenantId);
+
   const pk = `TENANT#${tenantId}`;
   const sk = "PROFILE";
 
-  await docClient.send(new DeleteCommand({
-    TableName: TABLE_NAME,
-    Key: { PK: pk, SK: sk }
+  // Borramos el perfil de la empresa y la vinculación de acceso del usuario
+  await docClient.send(new TransactWriteCommand({
+    TransactItems: [
+      {
+        Delete: {
+          TableName: TABLE_NAME,
+          Key: { PK: pk, SK: sk }
+        }
+      },
+      {
+        Delete: {
+          TableName: TABLE_NAME,
+          Key: { PK: `USER#${sub}`, SK: `TENANT#${tenantId}` }
+        }
+      }
+    ]
   }));
 
   return true;

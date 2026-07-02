@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const LISTAR_EMPRESAS_QUERY = `
@@ -43,6 +44,7 @@ const BORRAR_EMPRESA_MUTATION = `
 `;
 
 export default function EmpresasPage() {
+  const searchParams = useSearchParams();
   const [empresas, setEmpresas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,7 +80,10 @@ export default function EmpresasPage() {
 
   useEffect(() => {
     fetchEmpresas();
-  }, []);
+    if (searchParams.get('welcome') === 'true') {
+      setIsModalOpen(true);
+    }
+  }, [searchParams]);
 
   const openCreateModal = () => {
     setEditingTenant(null);

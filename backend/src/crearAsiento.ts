@@ -1,6 +1,6 @@
 import { AppSyncResolverEvent } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, TransactWriteCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { randomUUID } from 'crypto';
 
 const client = new DynamoDBClient({});
@@ -25,10 +25,25 @@ interface CrearAsientoInput {
     Apuntes: ApunteInput[];
 }
 
-export const handler = async (event: AppSyncResolverEvent<{ input: CrearAsientoInput }>) => {
+export const handler = async (event: any) => {
     console.log("Event:", JSON.stringify(event, null, 2));
     
     const { input } = event.arguments;
+    const sub = event.identity?.claims?.sub;
+
+    if (!sub) {
+        throw new Error("No autenticado");
+    }
+
+    // Autorización
+    const authRes = await docClient.send(new GetCommand({
+        TableName: TABLE_NAME,
+        Key: { PK: `USER#${sub}`, SK: `TENANT#${input.TenantId}` }
+    }));
+
+    if (!authRes.Item) {
+        throw new Error("No autorizado para este Tenant");
+    }
 
     if (!input.Apuntes || input.Apuntes.length === 0) {
         throw new Error("El asiento debe contener al menos un apunte.");

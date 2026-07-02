@@ -25,11 +25,18 @@ const OBTENER_DIARIO_QUERY = `
   }
 `;
 
+const EXPORTAR_DIARIO_QUERY = `
+  query ExportarDiario($TenantId: String!, $Ejercicio: String!) {
+    exportarDiario(TenantId: $TenantId, Ejercicio: $Ejercicio)
+  }
+`;
+
 export default function DiarioPage() {
   const { tenantId, ejercicio } = useTenant();
   const gridRef = useRef<AgGridReact>(null);
   const [rowData, setRowData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Estado del Modal
@@ -97,6 +104,38 @@ export default function DiarioPage() {
     cargarDiario();
   }, [cargarDiario]);
 
+  const exportarCSV = async () => {
+      if (!tenantId || !ejercicio) return;
+      setExporting(true);
+      try {
+          const session: any = await getSession();
+          if (!session?.accessToken) throw new Error("No autenticado");
+
+          const res = await fetch(process.env.NEXT_PUBLIC_API_URL || '', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': session.accessToken,
+              },
+              body: JSON.stringify({
+                  query: EXPORTAR_DIARIO_QUERY,
+                  variables: { TenantId: tenantId, Ejercicio: ejercicio }
+              })
+          });
+
+          const json = await res.json();
+          if (json.errors) throw new Error(json.errors[0].message);
+
+          const url = json.data.exportarDiario;
+          window.open(url, '_blank');
+          toast.success("Diario exportado con éxito");
+      } catch (err: any) {
+          toast.error('Error al exportar a CSV: ' + err.message);
+      } finally {
+          setExporting(false);
+      }
+  };
+
   const onRowDoubleClicked = (event: RowDoubleClickedEvent) => {
       const { IdAsiento } = event.data;
       if (IdAsiento) {
@@ -152,6 +191,13 @@ export default function DiarioPage() {
               <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Diario Histórico</h1>
               <p className="text-gray-500 mt-1">Listado cronológico de todos los apuntes contables del ejercicio {ejercicio}. Haz doble clic en una fila para editar el asiento completo.</p>
             </div>
+            <button 
+                onClick={exportarCSV} 
+                disabled={exporting}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow-sm transition-colors disabled:opacity-50"
+            >
+                {exporting ? 'Exportando...' : 'Exportar a CSV'}
+            </button>
         </div>
         
         {/* Barra de Filtros */}

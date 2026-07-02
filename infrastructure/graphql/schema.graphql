@@ -6,6 +6,7 @@ type Query {
   obtenerBalanceSumasSaldos(TenantId: String!, Ejercicio: String!): [BalanceLinea!]!
   listarEmpresas: [Empresa!]!
   obtenerDiario(TenantId: String!, Ejercicio: String!): [Apunte!]!
+  exportarDiario(TenantId: String!, Ejercicio: String!): String!
   calcularModelo303(TenantId: String!, Ejercicio: String!, Trimestre: Int!): Modelo303Result!
   calcularModelo390(TenantId: String!, Ejercicio: String!): Modelo390Result!
   calcularModelo347(TenantId: String!, Ejercicio: String!): [Modelo347Result!]!

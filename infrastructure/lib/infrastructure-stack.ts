@@ -64,6 +64,7 @@ export class InfrastructureStack extends cdk.Stack {
       sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pointInTimeRecovery: true,
     });
 
     table.addGlobalSecondaryIndex({
@@ -85,6 +86,13 @@ export class InfrastructureStack extends cdk.Stack {
           allowedHeaders: ['*'],
         },
       ],
+      lifecycleRules: [
+        {
+          id: 'DeleteExportsAfter2Days',
+          prefix: 'exports/',
+          expiration: cdk.Duration.days(2),
+        }
+      ]
     });
 
     // 1. SQS Queues
@@ -147,6 +155,14 @@ export class InfrastructureStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName },
+    });
+
+    const exportarDiarioLambda = new lambda.Function(this, 'ExportarDiarioLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'exportarDiario.handler',
+      timeout: cdk.Duration.seconds(60),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: { TABLE_NAME: table.tableName, BUCKET_NAME: docsBucket.bucketName },
     });
 
     const borrarAsientoLambda = new lambda.Function(this, 'BorrarAsientoLambda', {
@@ -273,6 +289,7 @@ export class InfrastructureStack extends cdk.Stack {
     table.grantReadWriteData(cerrarEjercicioLambda);
     table.grantReadWriteData(gestionarEmpresasLambda);
     table.grantReadData(obtenerDiarioLambda);
+    table.grantReadData(exportarDiarioLambda);
     table.grantReadData(obtenerAsientoLambda);
     table.grantReadWriteData(borrarAsientoLambda);
     table.grantReadWriteData(editarAsientoLambda);
@@ -286,6 +303,8 @@ export class InfrastructureStack extends cdk.Stack {
 
     docsBucket.grantPut(generarUrlSubidaLambda);
     docsBucket.grantRead(obtenerUrlDescargaLambda);
+    docsBucket.grantPut(exportarDiarioLambda);
+    docsBucket.grantRead(exportarDiarioLambda);
 
     // 4. API GraphQL: AWS AppSync
     const api = new appsync.GraphqlApi(this, 'ContaCoApi', {
@@ -306,6 +325,7 @@ export class InfrastructureStack extends cdk.Stack {
     const cierreDataSource = api.addLambdaDataSource('CierreDS', cerrarEjercicioLambda);
     const empresasDataSource = api.addLambdaDataSource('EmpresasDS', gestionarEmpresasLambda);
     const diarioDataSource = api.addLambdaDataSource('DiarioDS', obtenerDiarioLambda);
+    const exportarDiarioDataSource = api.addLambdaDataSource('ExportarDiarioDS', exportarDiarioLambda);
     const borrarDataSource = api.addLambdaDataSource('BorrarAsientoDS', borrarAsientoLambda);
     const editarDataSource = api.addLambdaDataSource('EditarAsientoDS', editarAsientoLambda);
     const modelo303DataSource = api.addLambdaDataSource('Modelo303DS', calcularModelo303Lambda);
@@ -329,6 +349,7 @@ export class InfrastructureStack extends cdk.Stack {
     empresasDataSource.createResolver('EditarEmpresaResolver', { typeName: 'Mutation', fieldName: 'editarEmpresa' });
     empresasDataSource.createResolver('BorrarEmpresaResolver', { typeName: 'Mutation', fieldName: 'borrarEmpresa' });
     diarioDataSource.createResolver('ObtenerDiarioResolver', { typeName: 'Query', fieldName: 'obtenerDiario' });
+    exportarDiarioDataSource.createResolver('ExportarDiarioResolver', { typeName: 'Query', fieldName: 'exportarDiario' });
     borrarDataSource.createResolver('BorrarAsientoResolver', { typeName: 'Mutation', fieldName: 'borrarAsiento' });
     editarDataSource.createResolver('EditarAsientoResolver', { typeName: 'Mutation', fieldName: 'editarAsiento' });
     modelo303DataSource.createResolver('CalcularModelo303Resolver', { typeName: 'Query', fieldName: 'calcularModelo303' });
