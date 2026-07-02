@@ -36,6 +36,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    const authRoutes = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'];
+    if (authRoutes.includes(pathname)) {
+      setIsLoaded(true);
+      setIsLoadingTenant(false);
+      return;
+    }
+
+    // Only init once: if already loaded, don't re-fetch on navigation
+    if (isLoaded) return;
+
     const init = async () => {
       const savedTenant = localStorage.getItem('contaco_tenantId');
       const savedEjercicio = localStorage.getItem('contaco_ejercicio');
@@ -83,15 +93,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         setIsLoadingTenant(false);
       }
     };
-    
-    const authRoutes = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'];
-    if (authRoutes.includes(pathname)) {
-      setIsLoaded(true);
-      setIsLoadingTenant(false);
-    } else {
-      init();
-    }
-  }, [pathname, router]);
+
+    init();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const setTenantId = (id: string) => {
     setTenantIdState(id);
