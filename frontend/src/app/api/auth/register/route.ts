@@ -36,6 +36,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Usuario registrado", userSub: response.UserSub });
   } catch (error: any) {
     console.error("Register Error:", error);
-    return NextResponse.json({ error: error.message || "Error al registrar usuario" }, { status: 400 });
+    let errorMessage = "Error al registrar usuario";
+    if (error.name === "UsernameExistsException") {
+      errorMessage = "El usuario ya existe. Por favor, inicia sesión.";
+    } else if (error.name === "InvalidPasswordException") {
+      errorMessage = "La contraseña no cumple los requisitos de seguridad.";
+    } else if (error.name === "InvalidParameterException") {
+      errorMessage = "Parámetros inválidos. Comprueba tu correo.";
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

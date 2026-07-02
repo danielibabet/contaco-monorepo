@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { CognitoIdentityProviderClient, ConfirmSignUpCommand } from "@aws-sdk/client-cognito-identity-provider";
+import { CognitoIdentityProviderClient, ConfirmForgotPasswordCommand } from "@aws-sdk/client-cognito-identity-provider";
 import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const { email, code } = await req.json();
+    const { email, code, newPassword } = await req.json();
 
-    if (!email || !code) {
-      return NextResponse.json({ error: "Email y código son requeridos" }, { status: 400 });
+    if (!email || !code || !newPassword) {
+      return NextResponse.json({ error: "Email, código y nueva contraseña son requeridos" }, { status: 400 });
     }
 
     const clientId = process.env.COGNITO_CLIENT_ID!;
@@ -21,25 +21,28 @@ export async function POST(req: Request) {
 
     const client = new CognitoIdentityProviderClient({ region });
     
-    const command = new ConfirmSignUpCommand({
+    const command = new ConfirmForgotPasswordCommand({
       ClientId: clientId,
       Username: email,
       ConfirmationCode: code,
+      Password: newPassword,
       SecretHash: secretHash,
     });
 
     await client.send(command);
 
-    return NextResponse.json({ message: "Usuario verificado exitosamente" });
+    return NextResponse.json({ message: "Contraseña actualizada exitosamente" });
   } catch (error: any) {
-    console.error("Verify Error:", error);
-    let errorMessage = "Error al verificar el código";
+    console.error("Reset Password Error:", error);
+    let errorMessage = "Error al restablecer la contraseña";
     if (error.name === "CodeMismatchException") {
       errorMessage = "Código incorrecto. Vuelve a intentarlo.";
     } else if (error.name === "ExpiredCodeException") {
       errorMessage = "El código ha expirado. Solicita uno nuevo.";
-    } else if (error.name === "NotAuthorizedException") {
-      errorMessage = "El usuario ya ha sido verificado o la sesión es inválida.";
+    } else if (error.name === "InvalidPasswordException") {
+      errorMessage = "La nueva contraseña no cumple los requisitos.";
+    } else if (error.name === "UserNotFoundException") {
+      errorMessage = "No existe ninguna cuenta con este email.";
     }
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }

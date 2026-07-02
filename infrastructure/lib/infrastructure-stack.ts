@@ -30,11 +30,21 @@ export class InfrastructureStack extends cdk.Stack {
       ],
     });
 
+    const cognitoCustomMessageLambda = new lambda.Function(this, 'CognitoCustomMessageLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'cognitoCustomMessage.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+    });
+
     const userPool = new cognito.UserPool(this, 'ContaCoUserPool', {
       userPoolName: 'contaco-users',
       passwordPolicy: { requireSymbols: false, requireUppercase: true, requireLowercase: true, requireDigits: true, minLength: 8 },
-      selfSignUpEnabled: false, 
+      selfSignUpEnabled: true, 
       signInAliases: { email: true },
+      autoVerify: { email: true },
+      lambdaTriggers: {
+        customMessage: cognitoCustomMessageLambda,
+      },
       removalPolicy: cdk.RemovalPolicy.DESTROY, 
     });
 
