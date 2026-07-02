@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -31,20 +31,24 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<string>('EMPLEADO');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoadingTenant, setIsLoadingTenant] = useState(true);
+  const hasInitialized = useRef(false);
   
   const router = useRouter();
   const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
 
   useEffect(() => {
+    // Run ONLY ONCE on mount — never again on navigation
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     const authRoutes = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'];
-    if (authRoutes.includes(pathname)) {
+    if (authRoutes.includes(pathnameRef.current)) {
       setIsLoaded(true);
       setIsLoadingTenant(false);
       return;
     }
-
-    // Only init once: if already loaded, don't re-fetch on navigation
-    if (isLoaded) return;
 
     const init = async () => {
       const savedTenant = localStorage.getItem('contaco_tenantId');
@@ -71,7 +75,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         if (empresas.length === 0) {
           setTenantIdState('');
           setUserRole('EMPLEADO');
-          if (pathname !== '/empresas') {
+          if (pathnameRef.current !== '/empresas') {
             router.push('/empresas?welcome=true');
           }
         } else {
@@ -96,7 +100,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
     init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, []);
 
   const setTenantId = (id: string) => {
     setTenantIdState(id);

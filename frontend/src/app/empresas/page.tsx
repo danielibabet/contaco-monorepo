@@ -78,12 +78,16 @@ export default function EmpresasPage() {
     }
   };
 
+  // Capture the welcome param at mount time (run once)
+  const initialWelcome = searchParams.get('welcome') === 'true';
+
   useEffect(() => {
     fetchEmpresas();
-    if (searchParams.get('welcome') === 'true') {
+    if (initialWelcome) {
       setIsModalOpen(true);
     }
-  }, [searchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openCreateModal = () => {
     setEditingTenant(null);
