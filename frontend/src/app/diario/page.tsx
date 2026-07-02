@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { getSession } from 'next-auth/react';
 import { useTenant } from '@/context/TenantContext';
 import AsientoGrid from '@/components/AsientoGrid';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -184,8 +185,9 @@ export default function DiarioPage() {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <header className="mb-6 flex flex-col gap-4">
+    <ProtectedRoute requiredRole="ADMIN">
+      <div className="h-full flex flex-col">
+        <header className="mb-6 flex flex-col gap-4">
         <div className="flex justify-between items-end">
             <div>
               <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Diario Histórico</h1>
@@ -283,6 +285,7 @@ export default function DiarioPage() {
               </div>
           </div>
       )}
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }

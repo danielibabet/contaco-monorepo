@@ -10,6 +10,8 @@ import * as budgets from 'aws-cdk-lib/aws-budgets';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 
 export class InfrastructureStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -248,12 +250,55 @@ export class InfrastructureStack extends cdk.Stack {
       environment: { TABLE_NAME: table.tableName },
     });
 
+    const gestionarFacturasLambda = new lambda.Function(this, 'GestionarFacturasLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'gestionarFacturas.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: { TABLE_NAME: table.tableName },
+    });
+
+    const gestionarTesoreriaLambda = new lambda.Function(this, 'GestionarTesoreriaLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'gestionarTesoreria.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: { TABLE_NAME: table.tableName },
+    });
+
     const procesarFicheroBancoLambda = new lambda.Function(this, 'ProcesarFicheroBancoLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'procesarFicheroBanco.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
       environment: { TABLE_NAME: table.tableName } // Necesita DDB para AutoMatch
     });
+
+    const gestionarActivosLambda = new lambda.Function(this, 'GestionarActivosLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'gestionarActivos.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: { TABLE_NAME: table.tableName }
+    });
+
+    const gestionarDashboardLambda = new lambda.Function(this, 'GestionarDashboardLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'gestionarDashboard.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: { TABLE_NAME: table.tableName }
+    });
+
+    const cronAmortizacionesLambda = new lambda.Function(this, 'CronAmortizacionesLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'cronAmortizaciones.handler',
+      timeout: cdk.Duration.minutes(5),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      environment: { TABLE_NAME: table.tableName }
+    });
+
+    // CRON: El primer día de cada mes a las 00:00 UTC (Mes vencido o inicio de mes)
+    // Para probarlo en vivo fácilmente, usa este cron (cada 5 min): cron(0/5 * * * ? *)
+    const cronRule = new events.Rule(this, 'CronAmortizacionesRule', {
+      schedule: events.Schedule.expression('cron(0 0 1 * ? *)'),
+    });
+    cronRule.addTarget(new targets.LambdaFunction(cronAmortizacionesLambda));
 
     // ÉPICA 1: Lambdas para Importador
     const extractoraLambda = new lambda.Function(this, 'ExtractoraZipLambda', {
@@ -310,6 +355,11 @@ export class InfrastructureStack extends cdk.Stack {
     table.grantReadWriteData(alternarPunteoLambda);
     table.grantReadWriteData(generarUrlSubidaLambda);
     table.grantReadData(procesarFicheroBancoLambda);
+    table.grantReadWriteData(gestionarFacturasLambda);
+    table.grantReadWriteData(gestionarTesoreriaLambda);
+    table.grantReadWriteData(gestionarActivosLambda);
+    table.grantReadData(gestionarDashboardLambda);
+    table.grantReadWriteData(cronAmortizacionesLambda);
 
     docsBucket.grantPut(generarUrlSubidaLambda);
     docsBucket.grantRead(obtenerUrlDescargaLambda);
@@ -348,6 +398,10 @@ export class InfrastructureStack extends cdk.Stack {
     const obtenerAsientoDataSource = api.addLambdaDataSource('ObtenerAsientoDS', obtenerAsientoLambda);
     const n43DataSource = api.addLambdaDataSource('N43DS', procesarFicheroBancoLambda);
     const ocrDataSource = api.addLambdaDataSource('OcrDS', ocrLambda);
+    const facturasDataSource = api.addLambdaDataSource('FacturasDS', gestionarFacturasLambda);
+    const tesoreriaDataSource = api.addLambdaDataSource('TesoreriaDS', gestionarTesoreriaLambda);
+    const activosDataSource = api.addLambdaDataSource('ActivosDS', gestionarActivosLambda);
+    const dashboardDataSource = api.addLambdaDataSource('DashboardDS', gestionarDashboardLambda);
 
     lambdaDataSource.createResolver('CrearAsientoResolver', { typeName: 'Mutation', fieldName: 'crearAsiento' });
     subcuentasDataSource.createResolver('ListarSubcuentasResolver', { typeName: 'Query', fieldName: 'listarSubcuentas' });
@@ -374,6 +428,13 @@ export class InfrastructureStack extends cdk.Stack {
     obtenerAsientoDataSource.createResolver('ObtenerAsientoResolver', { typeName: 'Query', fieldName: 'obtenerAsiento' });
     n43DataSource.createResolver('ProcesarFicheroBancoResolver', { typeName: 'Mutation', fieldName: 'procesarFicheroBanco' });
     ocrDataSource.createResolver('ExtraerOcrFacturaResolver', { typeName: 'Mutation', fieldName: 'extraerOcrFactura' });
+    facturasDataSource.createResolver('CrearFacturaResolver', { typeName: 'Mutation', fieldName: 'crearFactura' });
+    facturasDataSource.createResolver('ListarFacturasResolver', { typeName: 'Query', fieldName: 'listarFacturas' });
+    tesoreriaDataSource.createResolver('RegistrarPagoFacturaResolver', { typeName: 'Mutation', fieldName: 'registrarPagoFactura' });
+    activosDataSource.createResolver('CrearActivoResolver', { typeName: 'Mutation', fieldName: 'crearActivo' });
+    activosDataSource.createResolver('ListarActivosResolver', { typeName: 'Query', fieldName: 'listarActivos' });
+    dashboardDataSource.createResolver('ObtenerDashboardStatsResolver', { typeName: 'Query', fieldName: 'obtenerDashboardStats' });
+    dashboardDataSource.createResolver('ObtenerIngresosMensualesResolver', { typeName: 'Query', fieldName: 'obtenerIngresosMensuales' });
 
     // Outputs
     new cdk.CfnOutput(this, 'GraphQLAPIURL', { value: api.graphqlUrl });

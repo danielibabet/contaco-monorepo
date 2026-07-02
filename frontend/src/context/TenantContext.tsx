@@ -9,6 +9,8 @@ interface TenantContextProps {
   setTenantId: (id: string) => void;
   ejercicio: string;
   setEjercicio: (ejercicio: string) => void;
+  userRole: string;
+  setUserRole: (role: string) => void;
   isLoadingTenant: boolean;
 }
 
@@ -18,6 +20,7 @@ const LISTAR_EMPRESAS_QUERY = `
   query ListarEmpresas {
     listarEmpresas {
       TenantId
+      Rol
     }
   }
 `;
@@ -25,6 +28,7 @@ const LISTAR_EMPRESAS_QUERY = `
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [tenantId, setTenantIdState] = useState<string>('');
   const [ejercicio, setEjercicioState] = useState<string>('2026');
+  const [userRole, setUserRole] = useState<string>('EMPLEADO');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoadingTenant, setIsLoadingTenant] = useState(true);
   
@@ -56,6 +60,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
         if (empresas.length === 0) {
           setTenantIdState('');
+          setUserRole('EMPLEADO');
           if (pathname !== '/empresas') {
             router.push('/empresas?welcome=true');
           }
@@ -63,9 +68,11 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           const validTenant = empresas.find((e: any) => e.TenantId === savedTenant);
           if (validTenant) {
             setTenantIdState(savedTenant!);
+            setUserRole(validTenant.Rol);
           } else {
             const first = empresas[0].TenantId;
             setTenantIdState(first);
+            setUserRole(empresas[0].Rol);
             localStorage.setItem('contaco_tenantId', first);
           }
         }
@@ -101,7 +108,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <TenantContext.Provider value={{ tenantId, setTenantId, ejercicio, setEjercicio, isLoadingTenant }}>
+    <TenantContext.Provider value={{ tenantId, setTenantId, ejercicio, setEjercicio, userRole, setUserRole, isLoadingTenant }}>
       {children}
     </TenantContext.Provider>
   );

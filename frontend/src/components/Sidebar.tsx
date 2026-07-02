@@ -5,22 +5,30 @@ import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import TenantSelector from './TenantSelector';
 import ThemeToggle from './ThemeToggle';
+import { useTenant } from '@/context/TenantContext';
 
 export default function Sidebar() {
+  const { userRole } = useTenant();
+
   const links = [
-    { name: 'Asiento Diario', href: '/' },
-    { name: 'Diario Histórico', href: '/diario' },
-    { name: 'Subcuentas', href: '/subcuentas' },
-    { name: 'Libro Mayor', href: '/mayor' },
-    { name: 'Conciliación Bancaria', href: '/conciliacion' },
-    { name: 'Balance Sumas y Saldos', href: '/balances' },
-    { name: 'Balance de Situación', href: '/situacion' },
-    { name: 'Pérdidas y Ganancias', href: '/pyg' },
-    { name: 'Modelos Fiscales (303, 390, 347)', href: '/modelos' },
-    { name: 'Cierre Anual', href: '/cierre' },
-    { name: 'Migración DBF', href: '/migracion' },
-    { name: 'Configuración de Empresas', href: '/empresas' },
+    { name: 'Dashboard BI', href: '/', adminOnly: true },
+    { name: 'Asiento Diario', href: '/asientos', adminOnly: true },
+    { name: 'Diario Histórico', href: '/diario', adminOnly: true },
+    { name: 'Subcuentas', href: '/subcuentas', adminOnly: true },
+    { name: 'Libro Mayor', href: '/mayor', adminOnly: true },
+    { name: 'Conciliación Bancaria', href: '/conciliacion', adminOnly: true },
+    { name: 'Balance Sumas y Saldos', href: '/balances', adminOnly: true },
+    { name: 'Balance de Situación', href: '/situacion', adminOnly: true },
+    { name: 'Pérdidas y Ganancias', href: '/pyg', adminOnly: true },
+    { name: 'Modelos Fiscales (303, 390, 347)', href: '/modelos', adminOnly: true },
+    { name: 'Facturación', href: '/facturas', adminOnly: false },
+    { name: 'Inmovilizado', href: '/activos', adminOnly: true },
+    { name: 'Cierre Anual', href: '/cierre', adminOnly: true },
+    { name: 'Migración DBF', href: '/migracion', adminOnly: true },
+    { name: 'Configuración de Empresas', href: '/empresas', adminOnly: true },
   ];
+
+  const visibleLinks = links.filter(link => !link.adminOnly || userRole === 'ADMIN');
 
   return (
     <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 min-h-screen flex flex-col fixed shadow-sm z-50 transition-colors">
@@ -33,7 +41,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
-        {links.map((link) => (
+        {visibleLinks.map((link) => (
           <Link 
             key={link.name} 
             href={link.href}

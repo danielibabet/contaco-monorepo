@@ -28,6 +28,7 @@
     "react-dropzone": "^15.0.0",
     "react-hot-toast": "^2.6.0",
     "react-select": "^5.10.2",
+    "recharts": "^3.9.1",
     "uuid": "^14.0.1"
   },
   "devDependencies": {

@@ -12,6 +12,10 @@ type Query {
   calcularModelo347(TenantId: String!, Ejercicio: String!): [Modelo347Result!]!
   listarPlantillas(TenantId: String!): [Plantilla!]!
   obtenerUrlDescarga(S3Key: String!): String!
+  listarFacturas(TenantId: String!): [Factura!]!
+  listarActivos(TenantId: String!, Ejercicio: String!): [Activo!]!
+  obtenerDashboardStats(TenantId: String!, Ejercicio: String!): DashboardStats!
+  obtenerIngresosMensuales(TenantId: String!, Ejercicio: String!): [ChartData!]!
 }
 
 type Mutation {
@@ -29,6 +33,9 @@ type Mutation {
   crearEmpresa(input: CrearEmpresaInput!): Empresa!
   editarEmpresa(input: EditarEmpresaInput!): Empresa!
   borrarEmpresa(TenantId: String!): Boolean!
+  crearFactura(input: CrearFacturaInput!): Factura!
+  registrarPagoFactura(TenantId: String!, Ejercicio: String!, FacturaId: String!, FechaPago: String!, CuentaBanco: String!): Boolean!
+  crearActivo(input: CrearActivoInput!): Activo!
 }
 
 type Empresa {
@@ -238,3 +245,102 @@ input CrearPlantillaInput {
   NombrePlantilla: String!
   Lineas: [PlantillaLineaInput!]!
 }
+
+type Contacto {
+  Nombre: String!
+  CuentaContable: String!
+}
+
+type LineaFactura {
+  Concepto: String!
+  Base: Float!
+  TipoIVA: Float!
+  ImporteIVA: Float!
+  Total: Float!
+}
+
+type Factura {
+  PK: String!
+  SK: String!
+  TenantId: String!
+  IdFactura: String!
+  Numero: String!
+  Tipo: String!
+  Fecha: String!
+  Contacto: Contacto!
+  Base: Float!
+  IVA: Float!
+  Total: Float!
+  Estado: String!
+  EstadoPago: String!
+  FechaVencimiento: String!
+  Lineas: [LineaFactura!]
+  IdAsiento: String
+}
+
+type Activo {
+  PK: String!
+  SK: String!
+  Id: String!
+  TenantId: String!
+  Ejercicio: String!
+  Nombre: String!
+  CuentaContable: String!
+  ValorAdquisicion: Float!
+  MesesAmortizacion: Int!
+  CuotaMensual: Float!
+  FechaAlta: String!
+  Estado: String!
+  MesesAmortizados: Int!
+}
+
+type DashboardStats {
+  TotalIngresos: Float!
+  TotalGastos: Float!
+  PendienteCobro: Float!
+  PendientePago: Float!
+}
+
+type ChartData {
+  mes: String!
+  valor: Float!
+}
+
+type Vencimiento {
+  TenantId: String!
+  IdVencimiento: String!
+  IdFactura: String!
+  FechaVencimiento: String!
+  Importe: Float!
+  Estado: String!
+}
+
+input LineaFacturaInput {
+  Concepto: String!
+  Base: Float!
+  TipoIVA: Float!
+}
+
+input CrearFacturaInput {
+  TenantId: String!
+  Ejercicio: String!
+  Usuario: String!
+  Tipo: String!
+  Numero: String!
+  Fecha: String!
+  FechaVencimiento: String
+  NombreContacto: String!
+  CuentaContableContacto: String!
+  Lineas: [LineaFacturaInput!]!
+}
+
+input CrearActivoInput {
+  TenantId: String!
+  Ejercicio: String!
+  Nombre: String!
+  CuentaContable: String!
+  ValorAdquisicion: Float!
+  MesesAmortizacion: Int!
+  FechaAlta: String!
+}
+

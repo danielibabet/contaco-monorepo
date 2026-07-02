@@ -66,11 +66,8 @@ async function listarEmpresas(sub: string) {
     return [];
   }
 
-  const tenantIds = res.Items.map(item => item.SK.replace("TENANT#", ""));
-  
-  // En Single-Table Design, con listas cortas es válido hacer Get individuales o BatchGet
-  // Limitado a 100 items por BatchGet. En un SaaS real usaríamos BatchGet en bucle
-  const keys = tenantIds.map(tId => ({ PK: `TENANT#${tId}`, SK: "PROFILE" }));
+  const tenantRecords = res.Items;
+  const keys = tenantRecords.map(item => ({ PK: item.SK, SK: "PROFILE" }));
   
   // Dividir en chunks de 100 si hubiese más
   const chunkedKeys = keys.slice(0, 100); 
@@ -86,15 +83,20 @@ async function listarEmpresas(sub: string) {
   const batchRes = await docClient.send(batchReq);
   const profiles = batchRes.Responses?.[TABLE_NAME] || [];
 
-  return profiles.map((item: any) => ({
-    TenantId: item.PK.replace("TENANT#", ""),
-    Nombre: item.Nombre || item.Descripcion || "Empresa Sin Nombre",
-    RazonSocial: item.RazonSocial || null,
-    NIF: item.NIF || null,
-    Direccion: item.Direccion || null,
-    Poblacion: item.Poblacion || null,
-    CodigoPostal: item.CodigoPostal || null
-  }));
+  return profiles.map((item: any) => {
+    // Buscar la vinculación original para obtener el Rol
+    const userTenant = tenantRecords.find(ur => ur.SK === item.PK);
+    return {
+      TenantId: item.PK.replace("TENANT#", ""),
+      Nombre: item.Nombre || item.Descripcion || "Empresa Sin Nombre",
+      RazonSocial: item.RazonSocial || null,
+      NIF: item.NIF || null,
+      Direccion: item.Direccion || null,
+      Poblacion: item.Poblacion || null,
+      CodigoPostal: item.CodigoPostal || null,
+      Rol: userTenant?.Rol || "EMPLEADO"
+    };
+  });
 }
 
 async function crearEmpresa(sub: string, input: any) {
@@ -120,6 +122,7 @@ async function crearEmpresa(sub: string, input: any) {
     PK: `USER#${sub}`,
     SK: `TENANT#${tenantId}`,
     Type: "UserTenant",
+    Rol: "ADMIN",
     CreatedAt: new Date().toISOString()
   };
 
@@ -147,7 +150,8 @@ async function crearEmpresa(sub: string, input: any) {
     NIF: input.NIF || null,
     Direccion: input.Direccion || null,
     Poblacion: input.Poblacion || null,
-    CodigoPostal: input.CodigoPostal || null
+    CodigoPostal: input.CodigoPostal || null,
+    Rol: "ADMIN"
   };
 }
 
