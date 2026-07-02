@@ -15,6 +15,7 @@ function ResetPasswordContent() {
   const [email, setEmail] = useState(emailParam);
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -22,6 +23,12 @@ function ResetPasswordContent() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth/reset-password", {
@@ -102,6 +109,24 @@ function ResetPasswordContent() {
             />
           </div>
           <p className="text-xs text-slate-500 mt-2">Debe contener 8 caracteres, mayúsculas, minúsculas y números.</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Confirmar Nueva Contraseña</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock className="w-5 h-5 text-slate-400" />
+            </div>
+            <input
+              type="password"
+              required
+              minLength={8}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
+              placeholder="••••••••"
+            />
+          </div>
         </div>
 
         <button
