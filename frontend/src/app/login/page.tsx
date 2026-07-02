@@ -88,9 +88,9 @@ function LoginContent() {
         <div>
           <div className="flex justify-between mb-2">
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Contraseña</label>
-            <Link href="/forgot-password" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+            <a href="/forgot-password" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
               ¿Olvidaste tu contraseña?
-            </Link>
+            </a>
           </div>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -117,7 +117,7 @@ function LoginContent() {
       </form>
 
       <div className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
-        ¿No tienes cuenta? <Link href="/register" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Regístrate aquí</Link>
+        ¿No tienes cuenta? <a href="/register" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Regístrate aquí</a>
       </div>
     </div>
   );
