@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import TenantSelector from './TenantSelector';
 import ThemeToggle from './ThemeToggle';
@@ -24,7 +25,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 min-h-screen flex flex-col fixed shadow-sm z-50 transition-colors">
       <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900/50 flex flex-col items-center">
-        <img src="/logo.png" alt="ContaCo Logo" width={200} className="mb-1 object-contain" />
+        <Image src="/logo.png" alt="ContaCo Logo" width={200} height={66} className="mb-1 object-contain" priority />
       </div>
       
       <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
