@@ -9,7 +9,7 @@ export function LayoutClientWrapper({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { tenantId, isLoadingTenant } = useTenant();
   
-  const isAuthRoute = pathname === '/login' || pathname === '/register' || pathname === '/verify';
+  const isAuthRoute = pathname === '/login' || pathname === '/register' || pathname === '/verify' || pathname === '/forgot-password' || pathname === '/reset-password';
   const isEmpresasRoute = pathname === '/empresas';
 
   useEffect(() => {

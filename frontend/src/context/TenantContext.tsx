@@ -77,7 +77,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       }
     };
     
-    if (pathname === '/login' || pathname === '/register') {
+    const authRoutes = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'];
+    if (authRoutes.includes(pathname)) {
       setIsLoaded(true);
       setIsLoadingTenant(false);
     } else {
