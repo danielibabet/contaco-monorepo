@@ -359,7 +359,7 @@ export default function AsientoGrid({ asientoIdToEdit, apuntesToEdit, onSaved }:
           const data = await fetchGraphQL(OBTENER_URL_DESCARGA_QUERY, { S3Key: s3Key });
           const a = document.createElement('a');
           a.href = data.obtenerUrlDescarga;
-          a.download = `documento_${AsientoId}`;
+          a.download = s3Key.split('/').pop() || 'documento';
           document.body.appendChild(a);
           a.click();
           a.remove();
