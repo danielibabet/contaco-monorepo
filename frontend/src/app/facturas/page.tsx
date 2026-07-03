@@ -343,6 +343,7 @@ function NuevaFacturaModal({ onClose, tenantId, ejercicio, onSaved, fetchGraphQL
           </button>
         </div>
       </div>
+    </div>
   );
 }
 
