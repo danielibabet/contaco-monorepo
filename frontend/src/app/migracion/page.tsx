@@ -103,7 +103,7 @@ export default function MigracionPage() {
       
       <div 
         {...getRootProps()} 
-        className={`border-2 border-dashed rounded-2xl p-14 text-center transition-all ${
+        className={`tour-step-dropzone border-2 border-dashed rounded-2xl p-14 text-center transition-all ${
           isUploading ? 'opacity-50 cursor-not-allowed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800' : 
           isDragActive ? 'border-indigo-500 bg-indigo-50 cursor-pointer scale-105 shadow-md' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer shadow-sm'
         }`}

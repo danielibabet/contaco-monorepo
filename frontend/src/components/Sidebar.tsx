@@ -6,9 +6,11 @@ import { signOut } from 'next-auth/react';
 import TenantSelector from './TenantSelector';
 import ThemeToggle from './ThemeToggle';
 import { useTenant } from '@/context/TenantContext';
+import { useTour } from '@/context/TourContext';
 
 export default function Sidebar() {
   const { userRole } = useTenant();
+  const { startTour } = useTour();
 
   const links = [
     { name: 'Dashboard BI', href: '/', adminOnly: true },
@@ -52,6 +54,13 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900/50 flex flex-col gap-3">
+        <button
+          onClick={startTour}
+          className="w-full px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-lg transition-colors font-bold text-sm shadow-sm flex justify-center items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Ayuda / Tutorial
+        </button>
         <ThemeToggle />
         <button 
           onClick={() => signOut()}

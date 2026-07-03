@@ -91,7 +91,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Tarjeta Ingresos */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden">
+        <div className="tour-step-ingresos bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden">
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center">
              <svg className="w-8 h-8 text-emerald-500 absolute bottom-6 left-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
           </div>
@@ -100,7 +100,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tarjeta Gastos */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden">
+        <div className="tour-step-gastos bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden">
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center">
              <svg className="w-8 h-8 text-rose-500 absolute bottom-6 left-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
           </div>
@@ -109,7 +109,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tarjeta Pendiente Cobro */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden border-l-4 border-l-emerald-500">
+        <div className="tour-step-pendiente-cobro bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden border-l-4 border-l-emerald-500">
           <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Pendiente de Cobro</p>
           <h2 className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">{formatCurrency(stats.PendienteCobro)}</h2>
           <p className="text-xs font-medium text-slate-400 mt-2">Facturas emitidas no cobradas</p>
@@ -125,7 +125,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
         {/* Gráfico Principal */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="tour-step-grafico lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Evolución de Ingresos</h3>
             <p className="text-sm text-slate-500">Facturación mensual emitida durante el ejercicio</p>
@@ -167,7 +167,7 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex-1">
+          <div className="tour-step-salud bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex-1">
              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Salud Financiera</h3>
              
              <div className="space-y-5">
