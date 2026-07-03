@@ -195,9 +195,8 @@ function NuevaFacturaModal({ onClose, tenantId, ejercicio, onSaved, fetchGraphQL
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [nombreContacto, setNombreContacto] = useState('');
   const [cuentaContable, setCuentaContable] = useState('');
-  const [concepto, setConcepto] = useState('');
-  const [base, setBase] = useState('');
-  const [tipoIVA, setTipoIVA] = useState('21');
+  
+  const [lineas, setLineas] = useState([{ concepto: '', base: '', tipoIVA: '21' }]);
   const [submitting, setSubmitting] = useState(false);
 
   // Autocompletar la cuenta según el tipo de factura (Pista para el usuario)
@@ -207,6 +206,22 @@ function NuevaFacturaModal({ onClose, tenantId, ejercicio, onSaved, fetchGraphQL
       if (tipo === 'Recibida') setCuentaContable('4000001');
     }
   }, [tipo]);
+
+  const addLinea = () => {
+    setLineas([...lineas, { concepto: '', base: '', tipoIVA: '21' }]);
+  };
+
+  const updateLinea = (index: number, field: string, value: string) => {
+    const newLineas = [...lineas];
+    (newLineas[index] as any)[field] = value;
+    setLineas(newLineas);
+  };
+
+  const removeLinea = (index: number) => {
+    if (lineas.length > 1) {
+      setLineas(lineas.filter((_, i) => i !== index));
+    }
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -222,13 +237,11 @@ function NuevaFacturaModal({ onClose, tenantId, ejercicio, onSaved, fetchGraphQL
         Fecha: fecha,
         NombreContacto: nombreContacto,
         CuentaContableContacto: cuentaContable,
-        Lineas: [
-          {
-            Concepto: concepto,
-            Base: parseFloat(base),
-            TipoIVA: parseFloat(tipoIVA)
-          }
-        ]
+        Lineas: lineas.map(l => ({
+          Concepto: l.concepto,
+          Base: parseFloat(l.base),
+          TipoIVA: parseFloat(l.tipoIVA)
+        }))
       };
 
       await fetchGraphQL(CREAR_FACTURA_MUTATION, { input });
@@ -243,78 +256,93 @@ function NuevaFacturaModal({ onClose, tenantId, ejercicio, onSaved, fetchGraphQL
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-[100] p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-700">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-700 max-h-[90vh]">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900 shrink-0">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white">Nueva Factura</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Tipo</label>
-              <select value={tipo} onChange={(e) => setTipo(e.target.value)} required className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
-                <option value="Emitida">Emitida (Venta)</option>
-                <option value="Recibida">Recibida (Compra)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nº Factura</label>
-              <input type="text" value={numero} onChange={(e) => setNumero(e.target.value)} required placeholder="Ej: F24-001" className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Fecha</label>
-              <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
-            </div>
-          </div>
-
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nombre {tipo === 'Emitida' ? 'Cliente' : 'Proveedor'}</label>
-              <input type="text" value={nombreContacto} onChange={(e) => setNombreContacto(e.target.value)} required placeholder={`Nombre del ${tipo === 'Emitida' ? 'Cliente' : 'Proveedor'}`} className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Cuenta Contable</label>
-              <input type="text" value={cuentaContable} onChange={(e) => setCuentaContable(e.target.value)} required placeholder={tipo === 'Emitida' ? '430XXXX' : '400XXXX'} className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-12 gap-4 items-end">
-            <div className="col-span-5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Concepto Lín.</label>
-              <input type="text" value={concepto} onChange={(e) => setConcepto(e.target.value)} required placeholder="Descripción del servicio" className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
-            </div>
-            <div className="col-span-4">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Base Imp.</label>
-              <div className="relative">
-                <input type="number" step="0.01" value={base} onChange={(e) => setBase(e.target.value)} required placeholder="0.00" className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 pl-3 pr-8 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-right tabular-nums" />
-                <span className="absolute right-3 top-2.5 text-slate-400 font-bold">€</span>
+        <div className="overflow-y-auto flex-1">
+          <form id="factura-form" onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Tipo</label>
+                <select value={tipo} onChange={(e) => setTipo(e.target.value)} required className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                  <option value="Emitida">Emitida (Venta)</option>
+                  <option value="Recibida">Recibida (Compra)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nº Factura</label>
+                <input type="text" value={numero} onChange={(e) => setNumero(e.target.value)} required placeholder="Ej: F24-001" className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Fecha</label>
+                <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
               </div>
             </div>
-            <div className="col-span-3">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">% IVA</label>
-              <select value={tipoIVA} onChange={(e) => setTipoIVA(e.target.value)} required className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
-                <option value="21">21%</option>
-                <option value="10">10%</option>
-                <option value="4">4%</option>
-                <option value="0">0%</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-5 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-              Cancelar
-            </button>
-            <button type="submit" disabled={submitting} className="px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all disabled:opacity-50 disabled:hover:-translate-y-0 flex items-center gap-2">
-              {submitting ? 'Procesando...' : 'Crear y Contabilizar'}
-            </button>
-          </div>
-        </form>
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nombre {tipo === 'Emitida' ? 'Cliente' : 'Proveedor'}</label>
+                <input type="text" value={nombreContacto} onChange={(e) => setNombreContacto(e.target.value)} required placeholder={`Nombre del ${tipo === 'Emitida' ? 'Cliente' : 'Proveedor'}`} className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Cuenta Contable</label>
+                <input type="text" value={cuentaContable} onChange={(e) => setCuentaContable(e.target.value)} required placeholder={tipo === 'Emitida' ? '430XXXX' : '400XXXX'} className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
+              </div>
+            </div>
+
+            <div className="mt-2 flex flex-col gap-3">
+              <div className="flex justify-between items-end mb-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">Líneas de Factura</label>
+                <button type="button" onClick={addLinea} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  Añadir Línea
+                </button>
+              </div>
+
+              {lineas.map((linea, index) => (
+                <div key={index} className="grid grid-cols-12 gap-3 items-end bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                  <div className="col-span-5">
+                    <input type="text" value={linea.concepto} onChange={(e) => updateLinea(index, 'concepto', e.target.value)} required placeholder="Descripción del servicio" className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
+                  </div>
+                  <div className="col-span-3">
+                    <div className="relative">
+                      <input type="number" step="0.01" value={linea.base} onChange={(e) => updateLinea(index, 'base', e.target.value)} required placeholder="0.00" className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 pl-3 pr-8 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-right tabular-nums" />
+                      <span className="absolute right-3 top-2.5 text-slate-400 font-bold">€</span>
+                    </div>
+                  </div>
+                  <div className="col-span-3">
+                    <select value={linea.tipoIVA} onChange={(e) => updateLinea(index, 'tipoIVA', e.target.value)} required className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                      <option value="21">21%</option>
+                      <option value="10">10%</option>
+                      <option value="4">4%</option>
+                      <option value="0">0%</option>
+                    </select>
+                  </div>
+                  <div className="col-span-1 flex justify-center pb-2">
+                    <button type="button" onClick={() => removeLinea(index)} disabled={lineas.length === 1} className="text-slate-400 hover:text-red-500 disabled:opacity-30 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </form>
+        </div>
+
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900 shrink-0">
+          <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" form="factura-form" disabled={submitting} className="px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all disabled:opacity-50 flex items-center gap-2">
+            {submitting ? 'Procesando...' : 'Crear y Contabilizar'}
+          </button>
+        </div>
       </div>
-    </div>
   );
 }
 
