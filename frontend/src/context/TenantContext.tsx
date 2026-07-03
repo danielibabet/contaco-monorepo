@@ -65,7 +65,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       try {
         const res = await fetch(process.env.NEXT_PUBLIC_API_URL || '', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: session.accessToken },
+          headers: { 'Content-Type': 'application/json', Authorization: (session as any).accessToken },
           body: JSON.stringify({ query: LISTAR_EMPRESAS_QUERY })
         });
         const json = await res.json();
