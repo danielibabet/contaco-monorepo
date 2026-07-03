@@ -125,7 +125,10 @@ export default function BalancesPage() {
   };
 
   const exportarCsv = () => {
-    gridRef.current?.api.exportDataAsCsv({ fileName: `Balance_Sumas_Saldos_Nivel_${nivelFiltro}.csv` });
+    gridRef.current?.api.exportDataAsCsv({ 
+      fileName: `Balance_Sumas_Saldos_Nivel_${nivelFiltro}.csv`,
+      columnSeparator: ';'
+    });
   };
 
   const exportarPDF = () => {
