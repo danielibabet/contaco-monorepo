@@ -357,7 +357,12 @@ export default function AsientoGrid({ asientoIdToEdit, apuntesToEdit, onSaved }:
   const descargarDocumento = async (s3Key: string) => {
       try {
           const data = await fetchGraphQL(OBTENER_URL_DESCARGA_QUERY, { S3Key: s3Key });
-          window.open(data.obtenerUrlDescarga, '_blank');
+          const a = document.createElement('a');
+          a.href = data.obtenerUrlDescarga;
+          a.download = `documento_${AsientoId}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
       } catch (err: any) {
           toast.error("Error al descargar documento");
       }

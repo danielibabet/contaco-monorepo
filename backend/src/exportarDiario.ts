@@ -63,9 +63,9 @@ export const handler = async (event: any) => {
         });
 
         // Convert to CSV
-        const cabeceras = "Fecha,Nº Asiento,Línea,Subcuenta,Concepto,Documento,Debe,Haber\n";
+        const cabeceras = "Fecha;Nº Asiento;Línea;Subcuenta;Concepto;Documento;Debe;Haber\n";
         const lineas = allApuntes.map(a => 
-            `"${a.Fecha}","${a.IdAsiento}","${a.Linea}","${a.SubcuentaId}","${a.Concepto || ''}","${a.Documento || ''}","${a.Debe || 0}","${a.Haber || 0}"`
+            `"${a.Fecha}";"${a.IdAsiento}";"${a.Linea}";"${a.SubcuentaId}";"${a.Concepto || ''}";"${a.Documento || ''}";"${a.Debe || 0}";"${a.Haber || 0}"`
         ).join("\n");
 
         const csvString = '\uFEFF' + cabeceras + lineas;

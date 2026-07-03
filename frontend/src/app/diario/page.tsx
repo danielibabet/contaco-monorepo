@@ -128,7 +128,12 @@ export default function DiarioPage() {
           if (json.errors) throw new Error(json.errors[0].message);
 
           const url = json.data.exportarDiario;
-          window.open(url, '_blank');
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `diario_${ejercicio}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
           toast.success("Diario exportado con éxito");
       } catch (err: any) {
           toast.error('Error al exportar a CSV: ' + err.message);
