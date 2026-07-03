@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Joyride, { CallBackProps, Step, STATUS } from 'react-joyride';
+import { Joyride, STATUS } from 'react-joyride';
 import toast from 'react-hot-toast';
 
 interface TourContextType {
@@ -19,7 +19,7 @@ export function useTour() {
   return context;
 }
 
-const dashboardSteps: Step[] = [
+const dashboardSteps: any[] = [
   {
     target: 'body',
     content: '¡Bienvenido al Dashboard de Business Intelligence! Vamos a dar un rápido repaso a los indicadores clave.',
@@ -48,7 +48,7 @@ const dashboardSteps: Step[] = [
   }
 ];
 
-const migracionSteps: Step[] = [
+const migracionSteps: any[] = [
   {
     target: 'body',
     content: 'Bienvenido a la herramienta de migración masiva desde ContaPlus u otros sistemas basados en DBF.',
@@ -69,7 +69,7 @@ const migracionSteps: Step[] = [
 
 export function TourProvider({ children }: { children: React.ReactNode }) {
   const [run, setRun] = useState(false);
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [steps, setSteps] = useState<any[]>([]);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const startTour = () => {
-    let currentSteps: Step[] = [];
+    let currentSteps: any[] = [];
     if (pathname === '/') {
       currentSteps = dashboardSteps;
     } else if (pathname === '/migracion') {
@@ -92,7 +92,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideCallback = (data: any) => {
     const { status } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
     
@@ -101,12 +101,15 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const JoyrideComponent = Joyride as any;
+
   return (
     <TourContext.Provider value={{ startTour }}>
       {children}
-      <Joyride
+      <JoyrideComponent
         steps={steps}
         run={run}
+        callback={handleJoyrideCallback}
         continuous
         showProgress
         showSkipButton
@@ -117,10 +120,9 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           next: 'Siguiente',
           skip: 'Saltar',
         }}
-        callback={handleJoyrideCallback}
         styles={{
           options: {
-            primaryColor: '#4f46e5', // Indigo-600
+            primaryColor: '#4f46e5',
             zIndex: 10000,
           },
         }}
