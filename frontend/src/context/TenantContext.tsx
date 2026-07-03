@@ -37,16 +37,18 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const isAuthRoute = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'].includes(pathname);
+  const effectiveIsLoadingTenant = !isAuthRoute && !hasLoadedTenant;
+
   useEffect(() => {
-    const authRoutes = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'];
-    if (authRoutes.includes(pathname)) {
+    if (isAuthRoute) {
       setIsLoaded(true);
       setIsLoadingTenant(false);
       return;
     }
 
     if (hasLoadedTenant) return;
-    if (status === 'loading') return; // Wait for session to load
+    if (status !== 'authenticated') return; 
 
     const init = async () => {
       setIsLoadingTenant(true);
@@ -55,7 +57,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       if (savedEjercicio) setEjercicioState(savedEjercicio);
 
-      // If there's no session after loading, don't try to fetch
+      // We are authenticated, we should have a session
       if (!session || !(session as any).accessToken) {
         setIsLoaded(true);
         setIsLoadingTenant(false);
@@ -99,7 +101,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     };
 
     init();
-  }, [pathname, hasLoadedTenant, router, status, session]);
+  }, [pathname, hasLoadedTenant, router, status, session, isAuthRoute]);
 
   const setTenantId = (id: string) => {
     setTenantIdState(id);
@@ -116,7 +118,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <TenantContext.Provider value={{ tenantId, setTenantId, ejercicio, setEjercicio, userRole, setUserRole, isLoadingTenant }}>
+    <TenantContext.Provider value={{ tenantId, setTenantId, ejercicio, setEjercicio, userRole, setUserRole, isLoadingTenant: effectiveIsLoadingTenant }}>
       {children}
     </TenantContext.Provider>
   );
