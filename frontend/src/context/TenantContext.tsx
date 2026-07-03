@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { getSession } from 'next-auth/react';
+import { getSession, useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface TenantContextProps {
@@ -26,6 +26,7 @@ const LISTAR_EMPRESAS_QUERY = `
 `;
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
   const [tenantId, setTenantIdState] = useState<string>('');
   const [ejercicio, setEjercicioState] = useState<string>('2026');
   const [userRole, setUserRole] = useState<string>('EMPLEADO');
@@ -45,6 +46,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (hasLoadedTenant) return;
+    if (status === 'loading') return; // Wait for session to load
 
     const init = async () => {
       setIsLoadingTenant(true);
@@ -53,8 +55,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       if (savedEjercicio) setEjercicioState(savedEjercicio);
 
-      const session: any = await getSession();
-      if (!session) {
+      // If there's no session after loading, don't try to fetch
+      if (!session || !(session as any).accessToken) {
         setIsLoaded(true);
         setIsLoadingTenant(false);
         return;
@@ -97,7 +99,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     };
 
     init();
-  }, [pathname, hasLoadedTenant, router]);
+  }, [pathname, hasLoadedTenant, router, status, session]);
 
   const setTenantId = (id: string) => {
     setTenantIdState(id);
