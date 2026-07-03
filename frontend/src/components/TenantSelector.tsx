@@ -9,13 +9,14 @@ const LISTAR_EMPRESAS_QUERY = `
     listarEmpresas {
       TenantId
       Nombre
+      Rol
     }
   }
 `;
 
 export default function TenantSelector() {
-  const { tenantId, setTenantId, ejercicio, setEjercicio } = useTenant();
-  const [empresas, setEmpresas] = useState<{ TenantId: string; Nombre: string }[]>([]);
+  const { tenantId, setTenantId, ejercicio, setEjercicio, setUserRole } = useTenant();
+  const [empresas, setEmpresas] = useState<{ TenantId: string; Nombre: string; Rol: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,16 +40,20 @@ export default function TenantSelector() {
         if (json.data && json.data.listarEmpresas) {
           const loadedEmpresas = json.data.listarEmpresas;
           setEmpresas(loadedEmpresas);
-          // Sync con context si el actual no existe
+          
           if (loadedEmpresas.length > 0) {
             const currentTenant = localStorage.getItem('contaco_tenantId') || tenantId;
             const exists = loadedEmpresas.find((e: any) => e.TenantId === currentTenant);
-            if (!exists) {
+            if (exists) {
+              setTenantId(exists.TenantId);
+              setUserRole(exists.Rol);
+            } else {
               setTenantId(loadedEmpresas[0].TenantId);
+              setUserRole(loadedEmpresas[0].Rol);
             }
           } else {
-            // Si ha borrado TODAS las empresas, reseteamos el tenantId para no consultar datos fantasma
             setTenantId('');
+            setUserRole('EMPLEADO');
           }
         }
       } catch (err) {
@@ -67,7 +72,12 @@ export default function TenantSelector() {
         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Empresa Activa</label>
         <select 
           value={tenantId}
-          onChange={(e) => setTenantId(e.target.value)}
+          onChange={(e) => {
+            const newTenantId = e.target.value;
+            setTenantId(newTenantId);
+            const emp = empresas.find(emp => emp.TenantId === newTenantId);
+            if (emp) setUserRole(emp.Rol);
+          }}
           disabled={loading}
           className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 font-semibold text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 block p-2.5 shadow-sm transition-all"
         >

@@ -9,5 +9,8 @@
   ],
   "scripts": {
     "deploy": "npm run build --workspaces && npm run cdk deploy --workspace=infrastructure"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
   }
 }

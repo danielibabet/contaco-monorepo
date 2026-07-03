@@ -46,6 +46,7 @@ type Empresa {
   Direccion: String
   Poblacion: String
   CodigoPostal: String
+  Rol: String
 }
 
 input CrearEmpresaInput {
