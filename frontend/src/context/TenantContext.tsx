@@ -31,26 +31,23 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<string>('EMPLEADO');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoadingTenant, setIsLoadingTenant] = useState(true);
-  const hasInitialized = useRef(false);
+  const [hasLoadedTenant, setHasLoadedTenant] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
-  const pathnameRef = useRef(pathname);
-  pathnameRef.current = pathname;
 
   useEffect(() => {
-    // Run ONLY ONCE on mount — never again on navigation
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-
     const authRoutes = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'];
-    if (authRoutes.includes(pathnameRef.current)) {
+    if (authRoutes.includes(pathname)) {
       setIsLoaded(true);
       setIsLoadingTenant(false);
       return;
     }
 
+    if (hasLoadedTenant) return;
+
     const init = async () => {
+      setIsLoadingTenant(true);
       const savedTenant = localStorage.getItem('contaco_tenantId');
       const savedEjercicio = localStorage.getItem('contaco_ejercicio');
 
@@ -75,7 +72,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         if (empresas.length === 0) {
           setTenantIdState('');
           setUserRole('EMPLEADO');
-          if (pathnameRef.current !== '/empresas') {
+          if (pathname !== '/empresas') {
             router.push('/empresas?welcome=true');
           }
         } else {
@@ -93,14 +90,14 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         console.error("Error fetching tenants:", err);
       } finally {
+        setHasLoadedTenant(true);
         setIsLoaded(true);
         setIsLoadingTenant(false);
       }
     };
 
     init();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pathname, hasLoadedTenant, router]);
 
   const setTenantId = (id: string) => {
     setTenantIdState(id);
