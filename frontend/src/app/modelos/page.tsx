@@ -205,7 +205,7 @@ export default function ModelosPage() {
 
 function ResumenIvaCards({ data, loading, formatCurr }: { data: any, loading: boolean, formatCurr: (v: number)=>string }) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="tour-step-1 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border flex flex-col justify-between">
                 <h3 className="text-gray-500 font-medium text-sm">IVA Devengado (Repercutido/Ventas)</h3>
                 <div className="mt-4">

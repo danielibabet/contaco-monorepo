@@ -202,7 +202,7 @@ export default function BalancesPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-[80vh]">
+    <div className="tour-step-1 flex flex-col gap-6 h-[80vh]">
       <header className="flex justify-between items-center border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Balance de Sumas y Saldos</h1>

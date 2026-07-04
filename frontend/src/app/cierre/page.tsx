@@ -60,7 +60,7 @@ export default function CierrePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
+    <div className="tour-step-1 max-w-4xl mx-auto py-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Cierre de Ejercicio</h1>
         <p className="text-gray-500 mt-2">Automatiza la transición contable al nuevo año. Este proceso generará automáticamente los asientos de regularización, cierre y apertura.</p>

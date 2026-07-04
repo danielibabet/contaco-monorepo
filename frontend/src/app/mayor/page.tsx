@@ -275,7 +275,7 @@ export default function LibroMayorPage() {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="tour-step-1 flex flex-col h-full gap-4">
       <header className="flex justify-between items-end border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Libro Mayor y Conciliación</h1>

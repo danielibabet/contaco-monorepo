@@ -160,7 +160,7 @@ export default function EmpresasPage() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="tour-step-1 p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Gestión de Empresas</h1>

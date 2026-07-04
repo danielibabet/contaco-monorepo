@@ -73,7 +73,7 @@ export default function SubcuentasPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="tour-step-1 flex flex-col h-full gap-4">
       <header className="flex justify-between items-end border-b border-slate-200 dark:border-slate-700 pb-5">
         <div>
           <h1 className="text-3xl font-black text-slate-900">Plan de Cuentas</h1>

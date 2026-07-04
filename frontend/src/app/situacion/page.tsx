@@ -119,7 +119,7 @@ export default function SituacionPage() {
   const descuadre = totalActivo !== totalPasivo;
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
+    <div className="tour-step-1 max-w-5xl mx-auto py-8">
       <header className="mb-8 flex justify-between items-end border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Balance de Situación</h1>

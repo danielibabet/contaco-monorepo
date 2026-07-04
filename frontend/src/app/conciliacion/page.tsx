@@ -329,7 +329,7 @@ export default function ConciliacionPage() {
                             const importeMayor = (m.Debe || 0) - (m.Haber || 0);
                             return (
                                 <div key={idx} className={`p-4 rounded-lg border shadow-sm flex flex-col gap-1 transition-colors ${m.matchedWith ? 'bg-green-50 border-green-400' : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-700'}`}>
-                                    <div className="flex justify-between items-start">
+                                    <div className="tour-step-1 flex justify-between items-start">
                                         <span className="font-bold text-gray-800 dark:text-gray-200">{m.Fecha} <span className="text-xs text-gray-400 ml-1">Asiento {m.IdAsiento}</span></span>
                                         <span className={`font-bold text-lg ${importeMayor > 0 ? 'text-blue-600' : 'text-red-600'}`}>
                                             {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(importeMayor)}

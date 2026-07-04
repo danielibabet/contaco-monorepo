@@ -191,7 +191,7 @@ export default function DiarioPage() {
 
   return (
     <ProtectedRoute requiredRole="ADMIN">
-      <div className="h-full flex flex-col">
+      <div className="tour-step-1 h-full flex flex-col">
         <header className="mb-6 flex flex-col gap-4">
         <div className="flex justify-between items-end">
             <div>
