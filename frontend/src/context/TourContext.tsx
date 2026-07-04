@@ -75,8 +75,10 @@ const asientosSteps: any[] = [
     disableBeacon: true,
   },
   {
-    target: '.tour-step-1',
+    target: 'body',
     content: 'Introduce la cuenta, concepto, debe y haber. Los descuadres se marcarán en rojo automáticamente para evitar errores.',
+    placement: 'center',
+    disableBeacon: true,
   }
 ];
 
@@ -88,8 +90,10 @@ const diarioSteps: any[] = [
     disableBeacon: true,
   },
   {
-    target: '.tour-step-1',
+    target: 'body',
     content: 'Usa estos filtros para buscar por fecha, cuenta o concepto específico.',
+    placement: 'center',
+    disableBeacon: true,
   }
 ];
 
@@ -101,8 +105,10 @@ const subcuentasSteps: any[] = [
     disableBeacon: true,
   },
   {
-    target: '.tour-step-1',
+    target: 'body',
     content: 'Aquí puedes crear nuevas subcuentas a 8 dígitos o consultar sus saldos acumulados.',
+    placement: 'center',
+    disableBeacon: true,
   }
 ];
 
@@ -114,8 +120,10 @@ const mayorSteps: any[] = [
     disableBeacon: true,
   },
   {
-    target: '.tour-step-1',
+    target: 'body',
     content: 'Selecciona una cuenta para ver su saldo inicial, movimientos del periodo y saldo final.',
+    placement: 'center',
+    disableBeacon: true,
   }
 ];
 
@@ -127,8 +135,10 @@ const conciliacionSteps: any[] = [
     disableBeacon: true,
   },
   {
-    target: '.tour-step-1',
+    target: 'body',
     content: 'A la izquierda verás los movimientos del banco y a la derecha tus apuntes contables para facilitar el cuadre.',
+    placement: 'center',
+    disableBeacon: true,
   }
 ];
 
@@ -140,8 +150,10 @@ const balancesSteps: any[] = [
     disableBeacon: true,
   },
   {
-    target: '.tour-step-1',
+    target: 'body',
     content: 'Puedes exportar este balance a PDF o Excel para su revisión.',
+    placement: 'center',
+    disableBeacon: true,
   }
 ];
 
