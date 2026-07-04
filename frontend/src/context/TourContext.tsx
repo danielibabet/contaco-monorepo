@@ -57,12 +57,12 @@ const migracionSteps: any[] = [
   },
   {
     target: '.tour-step-dropzone',
-    content: 'Para importar tus datos, primero debes comprimir tus archivos DBF en un archivo .ZIP. Luego, arrastra el .ZIP aquí o haz clic para seleccionarlo.',
+    content: 'Para importar tus datos, primero debes tener una carpeta con los archivos DBF de tu programa anterior. Haz clic derecho sobre esa carpeta y selecciona "Comprimir en archivo ZIP" (o "Enviar a > Carpeta comprimida"). Luego, arrastra el archivo .ZIP generado aquí o haz clic para seleccionarlo.',
     placement: 'top',
   },
   {
     target: '.tour-step-dropzone',
-    content: 'Una vez subido, el sistema procesará los miles de apuntes en segundo plano usando AWS SQS. No te preocupes si tarda unos minutos, podrás seguir usando la aplicación mientras tanto.',
+    content: 'Una vez subido, el sistema procesará todos los apuntes en segundo plano. No te preocupes si tarda unos minutos, podrás seguir usando la aplicación mientras tanto.',
     placement: 'bottom',
   }
 ];

@@ -55,7 +55,7 @@ export default function MigracionPage() {
     setIsUploading(true);
     setResult(null);
 
-    const loadingToast = toast.loading('Paso 1/2: Subiendo copia de seguridad a AWS...', { id: 'migracion' });
+    const loadingToast = toast.loading('Paso 1/2: Subiendo copia de seguridad...', { id: 'migracion' });
 
     try {
         // 1. Obtener URL pre-firmada
@@ -79,7 +79,7 @@ export default function MigracionPage() {
 
         // 3. Procesar archivo en backend (puede tardar hasta 2 minutos)
         toast.success('¡Archivo subido! Procesando en background...', { id: loadingToast, duration: 8000 });
-        setResult("La importación masiva se está ejecutando en segundo plano. Los apuntes irán apareciendo en el Diario a lo largo de los próximos minutos a medida que SQS los procese.");
+        setResult("La importación masiva se está ejecutando en segundo plano. Los apuntes irán apareciendo en el Diario a lo largo de los próximos minutos a medida que se procesen.");
         
     } catch (error: any) {
         console.error("Migración error:", error);
@@ -97,7 +97,7 @@ export default function MigracionPage() {
       <header className="border-b border-slate-200 dark:border-slate-700 pb-5">
         <h1 className="text-3xl font-black text-slate-900">Migración directa de ContaPlus</h1>
         <p className="text-slate-500 mt-2 font-medium">
-          Sube tu copia de seguridad estructurada en <strong className="text-indigo-600">.ZIP</strong>. SQS procesará los archivos DBF en segundo plano para evitar bloqueos.
+          Sube tu copia de seguridad estructurada en <strong className="text-indigo-600">.ZIP</strong>. El sistema procesará los archivos en segundo plano para que puedas seguir trabajando.
         </p>
       </header>
       
@@ -128,8 +128,8 @@ export default function MigracionPage() {
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
             <div>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block">Subiendo a AWS...</span>
-                <span className="text-xs text-slate-500">Por favor no cierres la página hasta que finalice la subida a S3.</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block">Subiendo archivo...</span>
+                <span className="text-xs text-slate-500">Por favor no cierres la página hasta que finalice la subida.</span>
             </div>
         </div>
       )}
