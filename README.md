@@ -1,4 +1,4 @@
-﻿# ContaCo - Multi-Tenant Cloud Accounting Platform
+# ContaCo - Multi-Tenant Cloud Accounting Platform
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js 15"/>
@@ -19,28 +19,28 @@ ContaCo is a modern, enterprise-ready **multi-tenant financial and accounting ma
 
 ---
 
-## 🏛️ Monorepo Architecture
+## Monorepo Architecture
 
 Managed with **npm workspaces**:
 
-- **/frontend**: Web client built with **Next.js 15 (App Router)**, React 19, Tailwind CSS, and Lucide Icons. Secure authentication handled by NextAuth.
-- **/backend**: Business logic, database interactions, and invoice data extraction engine leveraging **AWS Textract OCR**.
-- **/infrastructure**: Infrastructure as Code (IaC) powered by **AWS CDK** for automated provisioning of cloud services.
+- **`/frontend`**: Web client built with **Next.js 15 (App Router)**, React 19, Tailwind CSS, and Lucide Icons. Secure authentication handled by NextAuth.
+- **`/backend`**: Business logic, database interactions, and invoice data extraction engine leveraging **AWS Textract OCR**.
+- **`/infrastructure`**: Infrastructure as Code (IaC) powered by **AWS CDK** for automated provisioning of cloud services.
 
 ---
 
-## ⚡ Key Features
+## Key Features
 
-- 🏢 **Multi-Tenant Organization:** Isolate and manage accounts, balance sheets, and entries for distinct companies seamlessly.
-- 📄 **Smart Invoice OCR:** Automated document scanning and parsing to minimize manual data entry.
-- 🌙 **Modern UI with Dark Mode:** Polished glassmorphism design, fluid animations, and high accessibility standards.
-- ⚡ **High-Speed Rendering:** Hybrid Server Components, streaming SSR, and edge image optimization.
+- **Multi-Tenant Organization:** Isolate and manage accounts, balance sheets, and entries for distinct companies seamlessly.
+- **Smart Invoice OCR:** Automated document scanning and parsing to minimize manual data entry.
+- **Modern UI with Dark Mode:** Polished glassmorphism design, fluid animations, and high accessibility standards.
+- **High-Speed Rendering:** Hybrid Server Components, streaming SSR, and edge image optimization.
 
 ---
 
-## 🚀 Local Setup
+## Local Setup
 
-`ash
+```bash
 # 1. Install root & workspace dependencies
 npm install
 
@@ -49,11 +49,11 @@ npm run dev --workspace=frontend
 
 # 3. Build all workspaces
 npm run build --workspaces
-`
+```
 
 ---
 
-## ☕ Support & Author
+## Support & Author
 
 - **Daniel Ibáñez** - [@danielibabet](https://github.com/danielibabet)
 - If you find this project helpful, consider supporting: [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Donate-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/dibanezb)
