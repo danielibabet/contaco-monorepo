@@ -9,21 +9,27 @@
   <img src="https://img.shields.io/badge/NextAuth.js-blueviolet?style=for-the-badge&logo=auth0&logoColor=white" alt="NextAuth"/>
 </p>
 
+<p align="center">
+  <a href="https://buymeacoffee.com/dibanezb">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42" width="150" />
+  </a>
+</p>
+
 ContaCo is a modern, enterprise-ready **multi-tenant financial and accounting management platform** designed to simplify invoice processing, ledger tracking, and multi-organization administration through AI-driven OCR automation and high-speed web interfaces.
 
 ---
 
-## Monorepo Architecture
+## 🏛️ Monorepo Architecture
 
-This project is managed as an **npm workspaces monorepo**:
+Managed with **npm workspaces**:
 
-- **/frontend**: Web client built with **Next.js 15 (App Router)**, React 19, Tailwind CSS, and Lucide Icons. Secure session handling with NextAuth. Deployed and edge-optimized on Vercel.
+- **/frontend**: Web client built with **Next.js 15 (App Router)**, React 19, Tailwind CSS, and Lucide Icons. Secure authentication handled by NextAuth.
 - **/backend**: Business logic, database interactions, and invoice data extraction engine leveraging **AWS Textract OCR**.
 - **/infrastructure**: Infrastructure as Code (IaC) powered by **AWS CDK** for automated provisioning of cloud services.
 
 ---
 
-## Key Features
+## ⚡ Key Features
 
 - 🏢 **Multi-Tenant Organization:** Isolate and manage accounts, balance sheets, and entries for distinct companies seamlessly.
 - 📄 **Smart Invoice OCR:** Automated document scanning and parsing to minimize manual data entry.
@@ -32,7 +38,7 @@ This project is managed as an **npm workspaces monorepo**:
 
 ---
 
-## Local Setup
+## 🚀 Local Setup
 
 `ash
 # 1. Install root & workspace dependencies
@@ -47,6 +53,7 @@ npm run build --workspaces
 
 ---
 
-## Author
+## ☕ Support & Author
 
 - **Daniel Ibáñez** - [@danielibabet](https://github.com/danielibabet)
+- If you find this project helpful, consider supporting: [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Donate-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/dibanezb)
