@@ -6,7 +6,13 @@
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"/>
   <img src="https://img.shields.io/badge/AWS_CDK-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS CDK"/>
   <img src="https://img.shields.io/badge/AWS_Textract-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS Textract"/>
-  <img src="https://img.shields.io/badge/NextAuth.js-blueviolet?style=for-the-badge&logo=auth0&logoColor=white" alt="NextAuth"/>
+  <img src="https://img.shields.io/badge/Deployed_on_Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"/>
+</p>
+
+<p align="center">
+  <a href="https://contaco.vercel.app/">
+    <img src="https://img.shields.io/badge/Live_Demo-contaco.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo"/>
+  </a>
 </p>
 
 <p align="center">
@@ -17,13 +23,15 @@
 
 ContaCo is a modern, enterprise-ready **multi-tenant financial and accounting management platform** designed to simplify invoice processing, ledger tracking, and multi-organization administration through AI-driven OCR automation and high-speed web interfaces.
 
+> 🌐 **Live Application:** [contaco.vercel.app](https://contaco.vercel.app/)
+
 ---
 
 ## Monorepo Architecture
 
 Managed with **npm workspaces**:
 
-- **`/frontend`**: Web client built with **Next.js 15 (App Router)**, React 19, Tailwind CSS, and Lucide Icons. Secure authentication handled by NextAuth.
+- **`/frontend`**: Web client built with **Next.js 15 (App Router)**, React 19, Tailwind CSS, and Lucide Icons. Secure authentication handled by NextAuth. Deployed live on **[Vercel](https://contaco.vercel.app/)**.
 - **`/backend`**: Business logic, database interactions, and invoice data extraction engine leveraging **AWS Textract OCR**.
 - **`/infrastructure`**: Infrastructure as Code (IaC) powered by **AWS CDK** for automated provisioning of cloud services.
 
